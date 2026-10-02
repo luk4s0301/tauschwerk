@@ -1,0 +1,15 @@
+Tauschwerk/data/
+Tauschwerk/runtime/
+Tauschwerk/tests/*-data-*/
+Tauschwerk/Tauschwerk.exe
+Tauschwerk/tests/*.png
+Tauschwerk/tests/online-live-results.json
+Tauschwerk/home-assistant/
+Tauschwerk/server-url.json
+.env
+.env.*
+!.env.example
+*.log
+*.zip
+*.tar.gz
+.publish/

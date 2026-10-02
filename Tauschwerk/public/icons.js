@@ -1,0 +1,29 @@
+const paths = {
+  swap:'M4 7h16m-5-5 5 5-5 5M20 17H4m5-5-5 5 5 5',
+  compare:'M4 4h6v16H4zM14 4h6v16h-6z',
+  grid:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  history:'M3 11a9 9 0 1 1 3 7M3 4v7h7M12 7v5l3 2',
+  settings:'M4 5h16M4 12h16M4 19h16M8 2v6M16 9v6M9 16v6',
+  search:'M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
+  plus:'M12 5v14M5 12h14',
+  close:'M6 6l12 12M18 6 6 18',
+  check:'m5 12 4 4 10-10',
+  arrow:'M4 12h16m-6-6 6 6-6 6',
+  download:'M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5',
+  upload:'M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5',
+  link:'M9 15l6-6M7 16l-1 1a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m2 2 1-1a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0',
+  edit:'m15 4 5 5M4 20l4-1L21 6l-5-5L3 14 2 21z',
+  shield:'m12 2 9 4v6c0 5-9 10-9 10S3 17 3 12V6zM8 12l3 3 5-6',
+  phone:'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2M10 18h4',
+  console:'M7 6h10l4 3 1 9-3 2-4-4H9l-4 4-3-2 1-9zM7 9v5M4.5 11.5h5M16 10h.01M19 13h.01',
+  chip:'M6 6h12v12H6zM9 9h6v6H9zM9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4',
+  gpu:'M2 6h20v12H2zM5 18v3M19 18v3M10 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0M19 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
+  watch:'M8 6V1h8v5M8 18v5h8v-5M7 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2M12 9v3l2 1',
+  laptop:'M4 3h16v13H4zM1 20h22l-3-4H4z',
+  audio:'M3 14v-3a9 9 0 0 1 18 0v3M3 12h4v9H3zM17 12h4v9h-4z',
+  box:'m12 2 10 5v10l-10 5-10-5V7zM2 7l10 5 10-5M12 12v10',
+  info:'M12 8h.01M12 11v6M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+  coin:'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20M15 7h-4a3 3 0 0 0 0 6h4M7 10h7M7 13h7'
+};
+export const icon = (name, cls='') => `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name] || paths.box}"/></svg>`;
+export const categoryIcon = c => ({Handys:'phone',Konsolen:'console',Grafikkarten:'gpu',Prozessoren:'chip',Uhren:'watch',Laptops:'laptop',Tablets:'phone',Audio:'audio',Monitore:'laptop',Speicher:'chip'}[c] || 'box');

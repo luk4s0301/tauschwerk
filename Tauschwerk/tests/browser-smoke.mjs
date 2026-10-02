@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {launch,root} from './helper.mjs';
+const {chromium}=await import(pathToFileURL(process.env.TAUSCHWERK_PLAYWRIGHT).href);
+const dir=fs.mkdtempSync(path.join(root,'tests','browser-data-'));
+const s=await launch(dir);
+const browser=await chromium.launch({headless:true,executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'});
+const page=await browser.newPage({viewport:{width:1440,height:1060},locale:'de-DE'});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+const click=async action=>page.locator(`[data-action="${action}"]`).first().click();
+try {
+  await page.goto(s.url);await page.getByRole('heading',{name:'Was passt zu deinem nächsten Tausch?'}).waitFor();
+  assert.equal(await page.locator('.device-card').count(),3);
+  assert.equal(await page.locator('.spec-table th').count(),4);
+  await page.screenshot({path:path.join(root,'tests','Vergleich.png'),fullPage:true});
+  await page.locator('#only-diff').check();assert.equal(await page.locator('.spec-table tbody tr:not(.different)').count(),0);await page.locator('#only-diff').uncheck();
+  await click('picker');await page.locator('#picker-search').fill('9800');assert.equal(await page.locator('.picker-row').count(),1);await click('picker-toggle');await click('finish-picker');assert.equal(await page.locator('.device-card').count(),4);
+  await page.locator('[data-action="remove-select"][data-id="ryzen9800"]').click();
+  await click('new');await page.locator('[name="name"]').fill('Test-Konsole <script>');await page.locator('[name="brand"]').fill('Testmarke');assert.ok(decodeURIComponent(await page.locator('#device-form [data-research="kleinanzeigen"]').getAttribute('href')).includes('Testmarke Test-Konsole'));await page.locator('[name="category"]').fill('Eigene Hardware');await page.locator('.spec-key').fill('Speicher');await page.locator('.spec-value').fill('1 TB');await click('add-offer');await page.locator('.offer-price').fill('200');await page.locator('.offer-note').fill('Gebraucht, sehr gut');await click('add-offer');await page.locator('.offer-price').nth(1).fill('300');await click('apply-median');assert.equal(await page.locator('[name="value"]').inputValue(),'250');await page.locator('#device-form [type="submit"]').click();await page.locator('#modal').waitFor({state:'hidden'});
+  let data=await (await page.request.get(s.base+'/api/store')).json();const own=data.devices.find(d=>d.brand==='Testmarke');assert.equal(own.value,250);assert.equal(own.offers.length,2);
+  await page.locator('[data-action="view"][data-view="catalog"]').click();await page.locator('#catalog-search').fill('Test-Konsole');assert.equal(await page.locator('.catalog-card').count(),1);assert.ok((await page.locator('.catalog-card h3').textContent()).includes('<script>'));await page.locator('.catalog-card [data-action="edit"]').click();await click('duplicate');await page.locator('[name="name"]').fill('Test-Konsole 2');await page.locator('#device-form [type="submit"]').click();await page.locator('#modal').waitFor({state:'hidden'});data=await (await page.request.get(s.base+'/api/store')).json();assert.equal(data.devices.length,19);
+  await page.locator('[data-action="view"][data-view="trade"]').click();await page.locator('[data-trade="giveBase"]').fill('600');await page.locator('[data-trade="receiveBase"]').fill('850');await page.locator('[data-trade="cashAmount"]').fill('200');assert.equal(await page.locator('.big-value').textContent(),'+50 €');await page.locator('[data-trade="giveExtra"]').fill('50');assert.equal(await page.locator('.big-value').textContent(),'0 €');await page.locator('[data-trade="giveExtra"]').fill('0');await page.locator('[data-trade="notes"]').fill('Testbewertung');await click('save-trade');await page.getByText('Tauschbewertung lokal gespeichert.',{exact:true}).waitFor();data=await (await page.request.get(s.base+'/api/store')).json();assert.equal(data.trades.length,1);assert.equal(data.trades[0].result.difference,50);
+  await page.locator('[data-trade="giveBase"]').fill('900');await page.locator('[data-trade="receiveBase"]').fill('600');await page.locator('[data-trade="cashDirection"]').selectOption('receive');await page.locator('[data-trade="cashAmount"]').fill('300');assert.equal(await page.locator('.big-value').textContent(),'0 €');
+  await page.locator('[data-trade="giveDeduct"]').fill('1000');await page.getByText('Der Gesamtwert muss zwischen 0 und 10 Mio. € liegen.',{exact:false}).waitFor();assert.equal(await page.locator('[data-action="save-trade"]').count(),0);await page.locator('[data-trade="giveDeduct"]').fill('0');
+  await page.locator('[data-action="view"][data-view="history"]').click();assert.equal(await page.locator('.history-item').count(),1);assert.ok((await page.locator('.history-value').textContent()).includes('50'));await click('trade-details');assert.ok((await page.locator('#modal').textContent()).includes('Testbewertung'));await click('close-modal');
+  await page.locator('[data-action="view"][data-view="settings"]').click();const downloadEvent=page.waitForEvent('download');await click('export');const download=await downloadEvent;const backupPath=path.join(dir,'export.json');await download.saveAs(backupPath);assert.equal(JSON.parse(fs.readFileSync(backupPath)).trades.length,1);
+  const malicious=structuredClone(own);malicious.id='import-device';malicious.name='<img src=x onerror=alert(1)>';const catalogPath=path.join(dir,'catalog-import.json');fs.writeFileSync(catalogPath,JSON.stringify([malicious]));await page.locator('#import-file').setInputFiles(catalogPath);await click('import-merge');await page.locator('#modal').waitFor({state:'hidden'});data=await (await page.request.get(s.base+'/api/store')).json();assert.equal(data.devices.length,20);
+  await page.locator('#import-file').setInputFiles(backupPath);await click('import-replace');await page.locator('#modal').waitFor({state:'hidden'});data=await (await page.request.get(s.base+'/api/store')).json();assert.equal(data.devices.length,19);assert.equal(data.trades.length,1);
+  await page.locator('[data-action="view"][data-view="compare"]').click();await page.waitForTimeout(700);await page.reload();await page.getByRole('heading',{name:'Was passt zu deinem nächsten Tausch?'}).waitFor();assert.equal(await page.locator('.device-card').count(),3);
+  const csvEvent=page.waitForEvent('download');await click('csv');const csv=await csvEvent;await csv.saveAs(path.join(dir,'comparison.csv'));assert.ok(fs.readFileSync(path.join(dir,'comparison.csv'),'utf8').includes('Apple iPhone 17 Pro'));
+  await page.setViewportSize({width:760,height:900});await page.screenshot({path:path.join(root,'tests','Vergleich-klein.png'),fullPage:true});
+  assert.deepEqual(errors,[]);console.log('Browser-Smoke-Test bestanden: Auswahl, Vergleich, CRUD/Variante, Preise, Rechnung, Historie, Backup/Import, CSV, Neustart, XSS-Text und schmale Ansicht.');
+} finally {await browser.close();await s.stop();}

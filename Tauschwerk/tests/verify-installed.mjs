@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {root} from './helper.mjs';
+const session=JSON.parse(fs.readFileSync(path.join(root,'data','session.json'),'utf8'));
+const base=`http://127.0.0.1:${session.port}`;
+const health=await (await fetch(`${base}/health?token=${session.token}`)).json();
+if(health.version!=='1.2.0')throw new Error('Es läuft noch die alte App-Version.');
+const response=await fetch(base+'/api/store',{headers:{Cookie:`tw_session=${session.token}`}});
+if(!response.ok)throw new Error('Lokaler Katalog nicht erreichbar.');
+const store=await response.json();
+console.log(JSON.stringify({version:health.version,devices:store.devices.length,savedTrades:store.trades.length,mode:store.ui?.mode || 'offline',onlineRouteInstalled:(await fetch(base+'/api/online/search?q=Steam%20Deck',{headers:{Cookie:`tw_session=${session.token}`}})).status===409}));

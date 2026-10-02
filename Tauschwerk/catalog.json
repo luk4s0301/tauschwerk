@@ -1,0 +1,711 @@
+[
+  {
+    "id": "iphone17pro",
+    "name": "iPhone 17 Pro",
+    "brand": "Apple",
+    "category": "Handys",
+    "source": "https://support.apple.com/de-de/125090",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "6,3″ OLED"
+      },
+      {
+        "key": "Bildwiederholrate",
+        "value": "bis 120 Hz"
+      },
+      {
+        "key": "Auflösung",
+        "value": "2622 × 1206"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Apple A19 Pro"
+      },
+      {
+        "key": "Speicher",
+        "value": "256 GB / 512 GB / 1 TB"
+      },
+      {
+        "key": "Hauptkamera",
+        "value": "48 MP"
+      },
+      {
+        "key": "Telekamera",
+        "value": "48 MP, 4× optisch"
+      },
+      {
+        "key": "Gewicht",
+        "value": "204 g"
+      },
+      {
+        "key": "Schutz",
+        "value": "IP68"
+      }
+    ],
+    "notes": "Speicher und SIM-Version beim konkreten Angebot prüfen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "iphone18pro",
+    "name": "iPhone 18 Pro",
+    "brand": "Apple",
+    "category": "Handys",
+    "source": "https://support.apple.com/en-la/148590",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "6,3″ OLED"
+      },
+      {
+        "key": "Bildwiederholrate",
+        "value": "bis 120 Hz"
+      },
+      {
+        "key": "Auflösung",
+        "value": "2622 × 1206"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Apple A20 Pro"
+      },
+      {
+        "key": "Speicher",
+        "value": "256 GB / 512 GB / 1 TB / 2 TB"
+      },
+      {
+        "key": "Hauptkamera",
+        "value": "48 MP, variable Blende"
+      },
+      {
+        "key": "Telekamera",
+        "value": "48 MP, 4× optisch"
+      },
+      {
+        "key": "Gewicht",
+        "value": "211 g"
+      },
+      {
+        "key": "Schutz",
+        "value": "IP68"
+      }
+    ],
+    "notes": "Daten laut verlinkter Herstellerquelle. Region und Speicher des Angebots beachten.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "s26ultra",
+    "name": "Galaxy S26 Ultra",
+    "brand": "Samsung",
+    "category": "Handys",
+    "source": "https://news.samsung.com/global/samsung-unveils-galaxy-s26-series-the-most-intuitive-galaxy-ai-phone-yet",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "6,9″ AMOLED"
+      },
+      {
+        "key": "Bildwiederholrate",
+        "value": "1–120 Hz"
+      },
+      {
+        "key": "Auflösung",
+        "value": "QHD+"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Snapdragon 8 Elite Gen 5 for Galaxy"
+      },
+      {
+        "key": "Speicher",
+        "value": "256 GB / 512 GB / 1 TB"
+      },
+      {
+        "key": "Arbeitsspeicher",
+        "value": "12 GB / 16 GB (je nach Variante)"
+      },
+      {
+        "key": "Hauptkamera",
+        "value": "200 MP"
+      },
+      {
+        "key": "Telekamera",
+        "value": "10 MP 3× + 50 MP 5× optisch"
+      },
+      {
+        "key": "Akku",
+        "value": "5.000 mAh (typisch)"
+      },
+      {
+        "key": "Gewicht",
+        "value": "214 g"
+      },
+      {
+        "key": "Schutz",
+        "value": "IP68"
+      }
+    ],
+    "notes": "RAM und Speicher sind variantenabhängig. S Pen gehört zum Modell.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "s26plus",
+    "name": "Galaxy S26+",
+    "brand": "Samsung",
+    "category": "Handys",
+    "source": "https://news.samsung.com/global/samsung-unveils-galaxy-s26-series-the-most-intuitive-galaxy-ai-phone-yet",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "6,7″ AMOLED"
+      },
+      {
+        "key": "Bildwiederholrate",
+        "value": "1–120 Hz"
+      },
+      {
+        "key": "Auflösung",
+        "value": "QHD+"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Exynos 2600 / Snapdragon, je nach Markt"
+      },
+      {
+        "key": "Speicher",
+        "value": "256 GB / 512 GB"
+      },
+      {
+        "key": "Arbeitsspeicher",
+        "value": "12 GB"
+      },
+      {
+        "key": "Hauptkamera",
+        "value": "50 MP"
+      },
+      {
+        "key": "Akku",
+        "value": "4.900 mAh (typisch)"
+      },
+      {
+        "key": "Gewicht",
+        "value": "190 g"
+      }
+    ],
+    "notes": "Prozessor unterscheidet sich je nach Verkaufsregion.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "switch2",
+    "name": "Switch 2",
+    "brand": "Nintendo",
+    "category": "Konsolen",
+    "source": "https://www.nintendo.com/us/gaming-systems/switch-2/tech-specs/",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "7,9″ LCD"
+      },
+      {
+        "key": "Bildwiederholrate",
+        "value": "bis 120 Hz"
+      },
+      {
+        "key": "Auflösung",
+        "value": "1920 × 1080 (Handheld)"
+      },
+      {
+        "key": "Speicher",
+        "value": "256 GB UFS"
+      },
+      {
+        "key": "Prozessor",
+        "value": "NVIDIA Custom"
+      },
+      {
+        "key": "Akku",
+        "value": "5.220 mAh"
+      },
+      {
+        "key": "Laufzeit",
+        "value": "ca. 2–6,5 Stunden, abhängig vom Spiel"
+      },
+      {
+        "key": "Erweiterung",
+        "value": "microSD Express bis 2 TB"
+      }
+    ],
+    "notes": "Dock und beide Joy-Con 2 mitbewerten. Alte microSD-Karten sind keine reguläre Speichererweiterung.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "switcholed",
+    "name": "Switch OLED",
+    "brand": "Nintendo",
+    "category": "Konsolen",
+    "source": "https://www.nintendo.com/en-za/Hardware/Nintendo-Switch-Family/Nintendo-Switch-OLED-Model/Nintendo-Switch-OLED-Model-2000984.html",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "7″ OLED"
+      },
+      {
+        "key": "Speicher",
+        "value": "64 GB"
+      },
+      {
+        "key": "Bauform",
+        "value": "Hybrid-Konsole"
+      },
+      {
+        "key": "Netzwerk",
+        "value": "LAN am mitgelieferten Dock"
+      }
+    ],
+    "notes": "Joy-Con-Drift, Display und Dock vor Ort testen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "ps5pro",
+    "name": "PlayStation 5 Pro",
+    "brand": "Sony",
+    "category": "Konsolen",
+    "source": "https://www.playstation.com/content/dam/global_pdc/en-hr/corporate/support/manuals/ps5-docs/7100/CFI-71XX_PS5_Safety_Guide_Web%24en-hr.pdf",
+    "specs": [
+      {
+        "key": "Prozessor",
+        "value": "AMD Zen 2, 8 Kerne / 16 Threads"
+      },
+      {
+        "key": "Grafik",
+        "value": "16,7 TFLOPS, AMD RDNA"
+      },
+      {
+        "key": "Arbeitsspeicher",
+        "value": "16 GB GDDR6 + 2 GB DDR5"
+      },
+      {
+        "key": "Speicher",
+        "value": "2 TB SSD"
+      },
+      {
+        "key": "Netzwerk",
+        "value": "Wi-Fi 7 / Gigabit-LAN"
+      },
+      {
+        "key": "Erweiterung",
+        "value": "M.2 SSD"
+      },
+      {
+        "key": "Laufwerk",
+        "value": "Separat erhältlich"
+      }
+    ],
+    "notes": "Laufwerk und Standfuß sind nicht im Standardpaket. Controller separat auf Drift prüfen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "xboxx",
+    "name": "Xbox Series X · 1 TB Disc",
+    "brand": "Microsoft",
+    "category": "Konsolen",
+    "source": "https://www.xbox.com/en-US/consoles/xbox-series-x",
+    "specs": [
+      {
+        "key": "Speicher",
+        "value": "1 TB NVMe SSD"
+      },
+      {
+        "key": "Laufwerk",
+        "value": "4K UHD Blu-ray"
+      },
+      {
+        "key": "Bauform",
+        "value": "Stationäre Konsole"
+      }
+    ],
+    "notes": "Dieser Eintrag ist die schwarze 1-TB-Version mit Laufwerk. Controller und HDMI-Port testen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "xboxs",
+    "name": "Xbox Series S · 512 GB",
+    "brand": "Microsoft",
+    "category": "Konsolen",
+    "source": "https://www.xbox.com/en-US/consoles/xbox-series-s",
+    "specs": [
+      {
+        "key": "Speicher",
+        "value": "512 GB NVMe SSD"
+      },
+      {
+        "key": "Laufwerk",
+        "value": "Kein optisches Laufwerk"
+      },
+      {
+        "key": "Bauform",
+        "value": "Stationäre Konsole"
+      }
+    ],
+    "notes": "Digitale Spiele im Konto sind kein übertragbares Zubehör.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "deckoled",
+    "name": "Steam Deck OLED · 512 GB",
+    "brand": "Valve",
+    "category": "Konsolen",
+    "source": "https://www.steamdeck.com/en/oled",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "7,4″ HDR OLED"
+      },
+      {
+        "key": "Auflösung",
+        "value": "1280 × 800"
+      },
+      {
+        "key": "Speicher",
+        "value": "512 GB NVMe SSD"
+      },
+      {
+        "key": "Bauform",
+        "value": "PC-Handheld"
+      },
+      {
+        "key": "Betriebssystem",
+        "value": "SteamOS"
+      }
+    ],
+    "notes": "512-GB- und 1-TB-Modell haben unterschiedliche Displayoberflächen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "rtx5080",
+    "name": "GeForce RTX 5080",
+    "brand": "NVIDIA",
+    "category": "Grafikkarten",
+    "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5080/",
+    "specs": [
+      {
+        "key": "Architektur",
+        "value": "Blackwell"
+      },
+      {
+        "key": "Grafikspeicher",
+        "value": "16 GB GDDR7"
+      },
+      {
+        "key": "Speicherinterface",
+        "value": "256 Bit"
+      },
+      {
+        "key": "CUDA-Kerne",
+        "value": "10.752"
+      },
+      {
+        "key": "Boosttakt",
+        "value": "2,62 GHz (Referenz)"
+      },
+      {
+        "key": "Upscaling",
+        "value": "DLSS 4"
+      }
+    ],
+    "notes": "Boardpartner, Kühlung und Garantie sind beim Gebrauchtwert relevant. Takt laut NVIDIA-Referenz.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "ryzen9800",
+    "name": "Ryzen 7 9800X3D",
+    "brand": "AMD",
+    "category": "Prozessoren",
+    "source": "https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-7-9800x3d.html",
+    "specs": [
+      {
+        "key": "Kerne",
+        "value": "8"
+      },
+      {
+        "key": "Threads",
+        "value": "16"
+      },
+      {
+        "key": "Boosttakt",
+        "value": "bis 5,2 GHz"
+      },
+      {
+        "key": "Basistakt",
+        "value": "4,7 GHz"
+      },
+      {
+        "key": "L3-Cache",
+        "value": "96 MB"
+      },
+      {
+        "key": "TDP",
+        "value": "120 W"
+      },
+      {
+        "key": "Sockel",
+        "value": "AM5"
+      },
+      {
+        "key": "Arbeitsspeicher",
+        "value": "DDR5"
+      }
+    ],
+    "notes": "AM5-Mainboard und passenden Kühler berücksichtigen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "ryzen7800",
+    "name": "Ryzen 7 7800X3D",
+    "brand": "AMD",
+    "category": "Prozessoren",
+    "source": "https://www.amd.com/en/products/processors/desktops/ryzen/7000-series/amd-ryzen-7-7800x3d.html",
+    "specs": [
+      {
+        "key": "Kerne",
+        "value": "8"
+      },
+      {
+        "key": "Threads",
+        "value": "16"
+      },
+      {
+        "key": "Boosttakt",
+        "value": "bis 5,0 GHz"
+      },
+      {
+        "key": "Basistakt",
+        "value": "4,2 GHz"
+      },
+      {
+        "key": "L3-Cache",
+        "value": "96 MB"
+      },
+      {
+        "key": "TDP",
+        "value": "120 W"
+      },
+      {
+        "key": "Sockel",
+        "value": "AM5"
+      },
+      {
+        "key": "Arbeitsspeicher",
+        "value": "DDR5"
+      }
+    ],
+    "notes": "Auf Beschädigungen und stabile Funktion unter Last prüfen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "watch10-42",
+    "name": "Watch Series 10 · 42 mm GPS",
+    "brand": "Apple",
+    "category": "Uhren",
+    "source": "https://support.apple.com/en-gb/121202",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "Always-On OLED"
+      },
+      {
+        "key": "Auflösung",
+        "value": "374 × 446"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Apple S10"
+      },
+      {
+        "key": "Speicher",
+        "value": "64 GB"
+      },
+      {
+        "key": "Gehäuse",
+        "value": "42 mm Aluminium, GPS"
+      },
+      {
+        "key": "Gewicht",
+        "value": "30 g"
+      },
+      {
+        "key": "Laufzeit",
+        "value": "bis 18 Stunden (Hersteller)"
+      },
+      {
+        "key": "Schutz",
+        "value": "50 m Wasserresistenz / IP6X"
+      }
+    ],
+    "notes": "iPhone erforderlich. Aktivierungssperre entfernen lassen und Akkuzustand prüfen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "watch10-46",
+    "name": "Watch Series 10 · 46 mm GPS",
+    "brand": "Apple",
+    "category": "Uhren",
+    "source": "https://support.apple.com/en-gb/121202",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "Always-On OLED"
+      },
+      {
+        "key": "Auflösung",
+        "value": "416 × 496"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Apple S10"
+      },
+      {
+        "key": "Speicher",
+        "value": "64 GB"
+      },
+      {
+        "key": "Gehäuse",
+        "value": "46 mm Aluminium, GPS"
+      },
+      {
+        "key": "Gewicht",
+        "value": "36,4 g"
+      },
+      {
+        "key": "Laufzeit",
+        "value": "bis 18 Stunden (Hersteller)"
+      },
+      {
+        "key": "Schutz",
+        "value": "50 m Wasserresistenz / IP6X"
+      }
+    ],
+    "notes": "Cellular- und Titanmodelle sind andere Varianten.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "mba-m4",
+    "name": "MacBook Air 13″ M4 · 16/256",
+    "brand": "Apple",
+    "category": "Laptops",
+    "source": "https://support.apple.com/en-ie/122209",
+    "specs": [
+      {
+        "key": "Display",
+        "value": "13,6″ IPS"
+      },
+      {
+        "key": "Auflösung",
+        "value": "2560 × 1664"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Apple M4, 10-Core CPU"
+      },
+      {
+        "key": "Grafik",
+        "value": "8-Core GPU"
+      },
+      {
+        "key": "Arbeitsspeicher",
+        "value": "16 GB"
+      },
+      {
+        "key": "Speicher",
+        "value": "256 GB SSD"
+      },
+      {
+        "key": "Gewicht",
+        "value": "1,24 kg"
+      },
+      {
+        "key": "Anschlüsse",
+        "value": "2× Thunderbolt 4, MagSafe 3"
+      },
+      {
+        "key": "Betriebssystem",
+        "value": "macOS"
+      }
+    ],
+    "notes": "Basiskonfiguration. Akkuzustand, Ladezyklen und MDM-/Aktivierungssperre prüfen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  },
+  {
+    "id": "airpodspro2",
+    "name": "AirPods Pro 2 · USB-C",
+    "brand": "Apple",
+    "category": "Audio",
+    "source": "https://support.apple.com/en-euro/111834",
+    "specs": [
+      {
+        "key": "Bauform",
+        "value": "In-Ear, kabellos"
+      },
+      {
+        "key": "Prozessor",
+        "value": "Apple H2"
+      },
+      {
+        "key": "Geräuschunterdrückung",
+        "value": "ANC / Transparenzmodus"
+      },
+      {
+        "key": "Laufzeit",
+        "value": "bis 6 Stunden, bis 30 mit Case (Hersteller)"
+      },
+      {
+        "key": "Bluetooth",
+        "value": "5.3"
+      },
+      {
+        "key": "Schutz",
+        "value": "IP54"
+      },
+      {
+        "key": "Laden",
+        "value": "USB-C / MagSafe / Qi"
+      }
+    ],
+    "notes": "Echtheit, Akkus beider Hörer und Ladecase prüfen.",
+    "value": null,
+    "offers": [],
+    "checked": "2026-10-02"
+  }
+]

@@ -45,6 +45,7 @@ const publicFiles = new Map([
   ['/styles.css',['styles.css','text/css; charset=utf-8']],
   ['/icons.js',['icons.js','text/javascript; charset=utf-8']],
   ['/core.mjs',['../core.mjs','text/javascript; charset=utf-8']],
+  ['/online-sources.mjs',['../online-sources.mjs','text/javascript; charset=utf-8']],
   ['/favicon.svg',['favicon.svg','image/svg+xml']]
 ]);
 const server = http.createServer(async (req,res) => {
@@ -53,19 +54,19 @@ const server = http.createServer(async (req,res) => {
   const url = new URL(req.url, origin);
   const authenticated = shared || (req.headers.cookie || '').split(';').some(c=>c.trim()===`tw_session=${token}`);
   const send = (code,payload,headers={}) => {res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(payload));};
-  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.2.0'});
+  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.4.0'});
   if (!shared && url.pathname === '/' && url.searchParams.get('token') === token) {
     res.writeHead(302,{'Set-Cookie':`tw_session=${token}; HttpOnly; SameSite=Strict; Path=/`,'Location':'/','Cache-Control':'no-store'});return res.end();
   }
   if (!authenticated) return send(401,{error:'Bitte Tauschwerk.exe starten.'});
   lastSeen = Date.now();
-  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.2.0'});
+  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.4.0'});
   if (url.pathname === '/api/store' && req.method === 'GET') {const data=structuredClone(store);if(shared)delete data.ui;return send(200,data,{ETag:revision});}
   if (url.pathname === '/api/ping' && req.method === 'POST') return send(200,{ok:true});
   if (url.pathname.startsWith('/api/online/') && req.method === 'GET') {
     if ((shared ? req.headers['x-tauschwerk-mode'] : store.ui?.mode) !== 'online') return send(409,{error:'Schalte zuerst auf den Online-Modus um.'});
     try {
-      if (url.pathname === '/api/online/search') return send(200,await searchOnline(url.searchParams.get('q'),url.searchParams.get('language') || 'all'));
+      if (url.pathname === '/api/online/search') return send(200,await searchOnline(url.searchParams.get('q'),url.searchParams.get('language') || 'all',{source:url.searchParams.get('source') || 'all',manufacturer:url.searchParams.get('manufacturer') || 'all',kind:url.searchParams.get('kind') || 'all'}));
       if (url.pathname === '/api/online/device') {
         const source=url.searchParams.get('url');
         const cached=shared&&onlineCache.find(e=>e.url===source&&Date.now()-e.time<86400000);

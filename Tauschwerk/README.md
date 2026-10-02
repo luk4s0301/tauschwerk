@@ -1,4 +1,4 @@
-# Tauschwerk 1.2
+# Tauschwerk 1.4
 
 Lokale Windows-App zum Vergleichen von Geräten und Bewerten von Tauschangeboten. Zwei Datenmodi: eigene Offline-Datenbank oder Online-Recherche mit anschließendem Offline-Import.
 
@@ -37,17 +37,38 @@ Der Umschalter oben rechts steht auf „Offline“. Der Katalog, Vergleich, Taus
 Oben rechts „Online“ wählen. Es öffnet sich „Online-Recherche“. Der Moduswechsel allein sendet keine Suchanfrage.
 
 1. Gerätenamen eingeben, z. B. `iPhone 17 Pro` oder `Steam Deck`.
-2. Deutsch, Englisch oder beide Sprachen wählen und „Online suchen“ klicken.
-3. Bei einer passenden öffentlichen Wikipedia-Seite „Daten laden“ klicken. Die App liest deren Infobox automatisch aus, zeigt Quelle, Abrufdatum und verfügbare Merkmale.
+2. Geräteart automatisch erkennen lassen oder auswählen und „Online suchen“ klicken. Unter „Suche verfeinern“ lassen sich Suchquelle, Hersteller und Sprache einstellen.
+3. Bei einer passenden öffentlichen Geräteseite „Daten laden“ klicken. Die App liest die verfügbaren technischen Daten automatisch aus, zeigt Quelle, Abrufdatum und verfügbare Merkmale.
 4. „Online vergleichen“ übernimmt das Gerät in den aktuellen Vergleich, ohne den Offline-Katalog zu ändern.
    Für jedes weitere Vergleichsgerät öffnet „Geräte online auswählen“ wieder die Online-Suche. Die Auswahl der bisherigen Geräte bleibt sichtbar und erhalten; du kannst bis zu vier Geräte nacheinander online auswählen.
 5. „Offline speichern & bearbeiten“ öffnet die vorausgefüllten Daten zur Prüfung und zum Speichern. Die gespeicherte Fassung steht danach auch offline zur Verfügung.
 
-Alternativ einen öffentlichen Hersteller- oder Datenblatt-Link in das zweite Feld eintragen und „Daten einlesen“ klicken. Unterstützt werden Produktdaten in JSON-LD, zweispaltige Datentabellen und bekannte Merkmalsabschnitte von Herstellerseiten. Beispielsweise lässt sich `https://support.apple.com/en-us/122209` einlesen.
+Die Ergebniskarten zeigen die Quelle und lassen sich nach Quelle filtern. Die Vorschau zeigt zuerst zentrale Merkmale; „Alle technischen Merkmale ansehen“ öffnet das ganze Datenblatt. Die ersten drei Schritte werden direkt in der Oberfläche erklärt.
+
+Alternativ „Du hast schon einen Produktlink?“ öffnen, einen öffentlichen Hersteller- oder Datenblatt-Link eintragen und „Daten einlesen“ klicken. Unterstützt werden Produktdaten in JSON-LD, zweispaltige HTML- und zugängliche div-Datentabellen, Definitionenlisten und bekannte Merkmalsabschnitte von Herstellerseiten. Beispielsweise lässt sich `https://support.apple.com/en-us/122209` einlesen.
+
+### Gerätearten und Fachquellen
+
+Die Geräteart kann automatisch aus dem Namen erkannt oder selbst gewählt werden. Unterstützt sind Handys/Tablets, Computer/Laptops, CPUs, GPUs, Konsolen, Uhren/Wearables, TV/Monitore, Audio, Kameras/Drohnen, PC-Zubehör/Speicher, Haushalt/Smart Home und andere Geräte. Freie Kategorien und Merkmale bleiben möglich.
+
+| Quelle | Suche und Nutzung |
+| --- | --- |
+| Herstellerseiten | Offizielle Domains von 49 Herstellern; allgemeine Websuche und zusätzlich öffentliche Apple-/PlayStation-Produktverzeichnisse |
+| NanoReview | Direkte Smartphone-Suche und Import technischer Tabellen; Display-/Kamera-Abschnitte bleiben getrennt |
+| CPU-Monkey | Direkte Prozessor-Suche und Datenblätter |
+| GPU-Monkey | Direkte Suche nach Grafikkarten und konkreten Hersteller-Varianten; technische Definitionenlisten |
+| LaptopMedia | Direkte Laptop-Suche und verlinkte Konfigurationen |
+| GSMArena | Öffentliches Handy-Suchformular; Verfügbarkeit hängt von dessen Abruflimits ab |
+| TechPowerUp | Gezielte Websuche auf der Fachquelle; öffentliche Datenblätter per Link |
+| RTINGS | Produktverzeichnis für u. a. TV, Monitore, Audio, Kameras, PC-Zubehör und Haushaltsgeräte; Testberichte werden im Browser geöffnet |
+| Wikipedia | Deutsche und englische Geräteartikel |
+| Websuche | Weitere öffentliche Produktseiten, Datenblätter und Tests |
+
+„Alle passenden Quellen“ fragt passende direkte Kataloge anhand der Geräteart ab und ergänzt Websuche/Wikipedia. Jede Fachquelle lässt sich unabhängig davon gezielt wählen. Technische Daten stammen aus der ausgewählten Seite; die App mischt verschiedene Quellen oder Varianten nicht automatisch zu einem erfundenen Gerät. Die Geräteart dient der Quellenwahl, nicht als Garantie, dass jedes existierende Produkt im Internet gefunden wird.
 
 ### Grenzen der Online-Daten
 
-Die Recherche sucht aktuell in deutscher und englischer Wikipedia. Der Link-Import kann zusätzliche öffentlich zugängliche Hersteller- und Produktseiten lesen. Manche Seiten blockieren automatische Zugriffe, benötigen JavaScript oder liefern keine strukturierten technischen Daten; dann zeigt die App den Grund und verändert den lokalen Katalog nicht. PDF-Datenblätter werden in diesem Modus nicht verarbeitet.
+Die Websuche nutzt öffentliche Treffer von DuckDuckGo mit Bing als Ersatz. Unpassende Modelltreffer werden aussortiert. Fällt eine Quelle aus, bleiben die übrigen Ergebnisse sichtbar; Hinweise lassen sich aufklappen. Suchanbieter können automatische Abrufe blockieren oder unpassende Treffer liefern. Dann helfen die Browser-Suchlinks und der direkte Link-Import. Manche Seiten benötigen JavaScript, haben Abruflimits oder liefern keine strukturierten technischen Daten; dann zeigt die App den Grund und verändert den Katalog nicht. RTINGS-Tests und PDF-Datenblätter öffnen sich im Browser und werden nicht automatisch importiert. LaptopMedia-Konfigurationen können unterschiedliche Generationen oder Varianten betreffen; vor dem Speichern prüfen. Allgemeine Produktseiten liefern unter Umständen weniger Angaben als echte Datenblätter. Herstellerverzeichnisse führen überwiegend aktuelle Geräte; ältere Modelle können über andere Quellen gefunden werden.
 
 Wikipedia-Seiten können ganze Modellfamilien und mehrere Varianten gemeinsam beschreiben. Der ausgewählte Seitentitel und die Quelle bleiben sichtbar. Kontrolliere, welche Daten zum konkreten Gerät gehören. Die App erfindet fehlende Werte nicht und wählt aus mehrspaltigen Vergleichstabellen keine beliebige Variante aus.
 

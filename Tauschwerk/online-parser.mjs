@@ -101,7 +101,9 @@ export function imageModelMatches(requested,candidate) {
   const actual=tokens(candidate);
   const variants=['pro','max','ultra','plus','mini','lite','air','fe'];
   const gpuVendors=['asus','msi','gigabyte','aorus','zotac','palit','gainward','sapphire','powercolor','xfx'];
-  return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t))&&(!wanted.some(t=>['geforce','radeon'].includes(t))||gpuVendors.every(t=>!actual.includes(t)||wanted.includes(t)));
+  const genericGPU=wanted.length===3&&['geforce','radeon'].includes(wanted[0]);
+  const gpuExact=!genericGPU||actual.every(t=>wanted.includes(t)||['nvidia','amd','graphics','card','cards','specs','specifications','technical','technische','daten','benchmark','benchmarks','and'].includes(t));
+  return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t))&&gpuExact&&(!wanted.some(t=>['geforce','radeon'].includes(t))||gpuVendors.every(t=>!actual.includes(t)||wanted.includes(t)));
 }
 export function extractImageCandidates(html,url,{name,provider='website'}={}) {
   const tree=parseTree(html),candidates=[];

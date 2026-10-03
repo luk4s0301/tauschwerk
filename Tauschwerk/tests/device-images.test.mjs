@@ -15,6 +15,8 @@ test('Modelle unterscheiden Generationen und Pro/Max/Ultra; Speicher ist für da
   assert.equal(imageModelMatches('Galaxy S25','Galaxy S25 Ultra'),false);
   assert.equal(imageModelMatches('Galaxy S25+','Galaxy S25'),false);
   assert.equal(imageModelMatches('GeForce RTX 5080','Gigabyte AORUS GeForce RTX 5080 Master'),false);
+  assert.equal(imageModelMatches('GeForce RTX 5080','PNY GeForce RTX 5080 ARGB Overclocked Triple Fan'),false);
+  assert.equal(imageModelMatches('GeForce RTX 5080','NVIDIA GeForce RTX 5080 Specs'),true);
 });
 test('Passendes Product-JSON-LD, relative URLs und Modellbilder werden priorisiert',()=>{
   const json=[{'@type':'Product',name:'Galaxy S25 Ultra',image:'https://example.com/ultra.jpg'},{'@type':'Product',name,image:{contentUrl:'/correct.png'}}];

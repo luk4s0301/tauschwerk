@@ -1,6 +1,18 @@
-# Tauschwerk 1.5
+# Tauschwerk 1.6
 
 Lokale Windows-App zum Vergleichen von Geräten und Bewerten von Tauschangeboten. Zwei Datenmodi: eigene Offline-Datenbank oder Online-Recherche mit anschließendem Offline-Import.
+
+## Online-Wertschätzung im Tauschrechner
+
+Für **beide** Tauschseiten Gerät auswählen und konkrete Variante, Zustand, Lieferumfang und gegebenenfalls Mängel beschreiben. „Set online bewerten“ aktiviert die Online-Recherche und liest öffentliche Preise von **Kleinanzeigen, reBuy und idealo**. Es ist kein API-Schlüssel erforderlich. Standardzubehör mit Semikolon trennen, zusätzliche Geräte mit exaktem Modellnamen zeilenweise angeben, z. B. `2x Sony DualSense`. Zusätzliche Geräte werden einzeln mit ihrer Anzahl bewertet; nicht gleichzeitig als Lieferumfang eintragen.
+
+Der Abgleich prüft Modellgeneration, Pro/Max/Ultra-Zusätze, numerische Konfiguration und Zustand. Unterschiedliche Speichergrößen werden ohne konkrete Variante nicht zusammengefasst. Ankaufsgesuche, gewerbliche Kleinanzeigen-Angebote, erkennbare Mehrfachpacks und falsche Modelle werden ausgelassen. Einzelne Kleinanzeigen-Angebote werden auf ihrer Detailseite geprüft; bis zu drei Ergebnisseiten und maximal 14 Detailangebote pro Komponente werden gelesen. Preisbasis sind mindestens drei passende private **Angebotspreise**. Fehlende Preise oder Zustandsabschläge werden nicht erfunden. Lieferumfang und Besonderheiten müssen in den verwendeten Beschreibungen ausdrücklich vorkommen; unklare Angaben können deshalb eine Bewertung verhindern.
+
+Sind zu wenige private Angebote vorhanden, kann eine **Händlerorientierung** aus mindestens drei verfügbaren reBuy-Angeboten im gewählten Zustand erscheinen. Das sind Verkaufspreise mit Garantie und Händlermarge, keine Ankaufspreise oder bestätigten privaten Marktwerte. idealo-Gebraucht-Abpreise ohne konkreten Zustand und idealo-Neupreise werden separat als Kontext angezeigt und nicht in den Gebrauchtwert gemischt. Ausverkaufte reBuy-Varianten werden ausgeschlossen. Gesperrte Webseiten werden als nicht erreichbare Quelle angezeigt.
+
+Die App zeigt Schätzwert, beobachtete Preisspanne, Abrufzeit und verlinkte Angebote. Quellen mit geringer Aussagekraft bleiben entsprechend gekennzeichnet. Eine Setbewertung wird erst verwendet, wenn auch alle zusätzlichen Geräte bewertet sind. Ändern sich die Eingaben, muss neu bewertet werden; nach 24 Stunden wird ein neuer Abruf verlangt. Die Tauschbilanz zeigt zusätzlich eine mögliche Wertdifferenz aus den Spannen beider Sets. Gespeicherte Tausche behalten die damaligen Set-Beschreibungen und Preisquellen auch offline.
+
+Unter „Eigene Einschätzung / Offline-Werte“ lassen sich weiterhin bewusst eigene Werte verwenden. Die Online-Bewertung überschreibt keine Gerätepreise im Katalog. Angebotspreise sind keine nachgewiesenen Verkaufspreise; Funktion und Echtheit müssen vor Ort geprüft werden.
 
 ## Produktbilder
 
@@ -80,15 +92,15 @@ Die Websuche nutzt öffentliche Treffer von DuckDuckGo mit Bing als Ersatz. Unpa
 
 Wikipedia-Seiten können ganze Modellfamilien und mehrere Varianten gemeinsam beschreiben. Der ausgewählte Seitentitel und die Quelle bleiben sichtbar. Kontrolliere, welche Daten zum konkreten Gerät gehören. Die App erfindet fehlende Werte nicht und wählt aus mehrspaltigen Vergleichstabellen keine beliebige Variante aus.
 
-Ein Abrufdatum bezeichnet den Zeitpunkt des Imports, nicht das Datum einer unabhängigen fachlichen Prüfung. Wikipedia-Daten tragen einen Hinweis auf Wikipedia-Mitwirkende und CC BY-SA; die verlinkte Seite enthält Versionsgeschichte und Lizenzdetails. Händler-Neupreise und historische Einführungspreise werden nicht als aktueller Gebrauchtwert behandelt. Gebrauchtpreise pflegst du weiter selbst über deine Preisbeispiele.
+Ein Abrufdatum bezeichnet den Zeitpunkt des Imports, nicht das Datum einer unabhängigen fachlichen Prüfung. Wikipedia-Daten tragen einen Hinweis auf Wikipedia-Mitwirkende und CC BY-SA; die verlinkte Seite enthält Versionsgeschichte und Lizenzdetails. Händler-Neupreise und historische Einführungspreise werden nicht als aktueller Gebrauchtwert behandelt. Online-Setwerte werden separat im Tauschrechner ermittelt; eigene Preisbeispiele bleiben zusätzlich verfügbar.
 
 ## Tauschrechnung
 
-Gerätewert = Gebrauchtwert im beschriebenen Zustand + zusätzliches Zubehör − noch nicht eingepreiste Mängel.
+Online-Setwert = geprüfter Gerätevergleichswert + separat bewertete Extras mit ihrer Anzahl. Eigene Einschätzung: Gebrauchtwert + zusätzliches Zubehör − noch nicht eingepreiste Mängel.
 
 Wertdifferenz aus deiner Sicht = Empfangswert − Abgabewert − eigene Zuzahlung. Eine erhaltene Zuzahlung wird negativ eingesetzt. Beispiel: Abgabe 600 €, Empfang 850 €, eigene Zuzahlung 200 € → +50 € aus deiner Sicht. 250 € Zuzahlung würde die eingegebenen Werte exakt ausgleichen.
 
-„Rechnerisch ausgeglichen“ gilt innerhalb von 5 % des höheren Gerätewerts, mindestens 20 €. Das ist eine offengelegte Rechenregel, keine empirische Marktspanne. Zustand wird dokumentiert; seine Preiswirkung setzt du selbst ein. Bereits berücksichtigte Defekte nicht doppelt abziehen.
+„Rechnerisch ausgeglichen“ gilt innerhalb von 5 % des höheren Gerätewerts, mindestens 20 €. Das ist eine offengelegte Rechenregel, keine empirische Marktspanne. Die Online-Bewertung verwendet passende Zustandsangebote und zeigt deren beobachtete Spanne separat. Bei eigener Einschätzung setzt du die Preiswirkung selbst ein. Bereits berücksichtigte Defekte nicht doppelt abziehen.
 
 ## Lokale Daten
 

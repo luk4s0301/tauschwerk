@@ -74,7 +74,7 @@ class TauschwerkLauncher {
         string json;
         using(var reader=new StreamReader(response.GetResponseStream()))json=reader.ReadToEnd();
         var health=new JavaScriptSerializer().Deserialize<Dictionary<string,object>>(json);
-        if(health.ContainsKey("version") && Convert.ToString(health["version"])=="1.4.0")return origin+"/?token="+token;
+        if(health.ContainsKey("version") && Convert.ToString(health["version"])=="1.5.0")return origin+"/?token="+token;
         outdatedAuthenticated = true;
         // Restart only this app's authenticated, outdated local service.
         int pid=Convert.ToInt32(data["pid"]);

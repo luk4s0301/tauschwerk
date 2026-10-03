@@ -23,7 +23,7 @@ await page.route('**/api/online/**',async route=>{
 });
 try{
   await page.goto(server.url);await page.locator('.device-card').first().waitFor();while(await page.locator('[data-action="remove-select"]').count())await page.locator('[data-action="remove-select"]').first().click();
-  await page.locator('[data-mode="online"]').click();assert.ok(!await page.locator('#online-source').isVisible());assert.equal(await page.locator('.research-steps li').count(),3);
+  await page.locator('[data-mode="online"]').click();await page.locator('.research-steps li').first().waitFor();assert.ok(!await page.locator('#online-source').isVisible());assert.equal(await page.locator('.research-steps li').count(),3);
   for(const [kind,query,source] of [['phones','iPhone 17 Pro','NanoReview'],['gpu','RTX 5090','GPU-Monkey'],['watches','Apple Watch Series 12','Apple']]){
     await page.locator('#online-kind').selectOption(kind);await page.locator('#online-query').fill(query);await page.locator('#online-search-form [type="submit"]').click();await page.locator('.online-result').first().waitFor();assert.equal(requests.at(-1).searchParams.get('kind'),kind);
     assert.equal(await page.getByRole('link',{name:'Testbericht öffnen'}).count(),1);await page.getByRole('button',{name:source,exact:true}).click();assert.equal(await page.locator('.online-result').count(),1);await page.locator('[data-action="online-fetch"]').click();await page.locator('.online-preview').waitFor();assert.ok(await page.locator('.spec-highlights').isVisible());await page.locator('.spec-details summary').click();assert.ok(await page.locator('.online-preview tbody tr').first().isVisible());

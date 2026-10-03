@@ -94,6 +94,38 @@ function guessCategory(name,description,specs,url=''){
 }
 function guessBrand(name,specs){const explicit=specs.find(s=>['Marke','Hersteller'].includes(s.key))?.value;if(explicit)return explicit.slice(0,300);const brands=[[/iphone|ipad|macbook|airpods|apple watch/i,'Apple'],[/galaxy|samsung/i,'Samsung'],[/asus|zenbook|vivobook/i,'ASUS'],[/lenovo|thinkpad|ideapad/i,'Lenovo'],[/dell|xps|latitude/i,'Dell'],[/\bhp\b|elitebook|probook/i,'HP'],[/acer|swift|predator/i,'Acer'],[/\bmsi\b/i,'MSI'],[/surface|xbox/i,'Microsoft'],[/framework/i,'Framework'],[/razer/i,'Razer'],[/geforce|nvidia/i,'NVIDIA'],[/ryzen|radeon|amd/i,'AMD'],[/intel|core i[3579]|core ultra/i,'Intel'],[/playstation|sony/i,'Sony'],[/nintendo|switch/i,'Nintendo'],[/steam deck/i,'Valve'],[/pixel/i,'Google']];return (brands.find(([re])=>re.test(name))?.[1] || specs.find(s=>s.key==='Entwickler')?.value || '').slice(0,300);}
 
+// Match the actual model, ignoring storage/colour suffixes but retaining Pro/Max/Ultra.
+export function imageModelMatches(requested,candidate) {
+  const tokens=s=>textOnly(s).split(/\s*[·|]\s*/)[0].replace(/(\d+)\s*(?:gb|tb)\b/ig,'').replace(/\+/g,' plus ').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
+  const wanted=tokens(requested).filter(t=>!['apple','samsung','sony','microsoft','google','nvidia','amd','intel','valve','technical','specifications','technische','daten'].includes(t));
+  const actual=tokens(candidate);
+  const variants=['pro','max','ultra','plus','mini','lite','air','fe'];
+  return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t));
+}
+export function extractImageCandidates(html,url,{name,provider='website'}={}) {
+  const tree=parseTree(html),candidates=[];
+  const add=(value,alt='',score=0)=>{
+    if(!value||/logo|favicon|sprite|banner|badge|chart|benchmark|graph|tracking|icon[_-]|size_and_weight|diagram|pixel\.gif|\.svg(?:\?|$)/i.test(value+' '+alt))return;
+    let imageURL;try{imageURL=new URL(value,url);if(imageURL.protocol!=='https:'||imageURL.username||imageURL.password)return;}catch{return;}
+    if(!candidates.some(c=>c.url===imageURL.href))candidates.push({url:imageURL.href,alt:alt||name,score});
+  };
+  for(const script of html.matchAll(/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
+    try{for(const p of flattenJSON(JSON.parse(script[1])))if(imageModelMatches(name,p.name||''))for(const img of [p.image||[]].flat()){add(typeof img==='string'?img:img?.contentUrl||img?.url,p.name,100);}}catch{}
+  }
+  const metas=[...descendants(tree,'meta')];
+  const meta=key=>attr(metas.find(n=>attr(n,'property')===key||attr(n,'name')===key)||{},'content');
+  const pageName=meta('og:title')||textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'')||cleanNode([...descendants(tree,'h1')][0]||{children:[]})||(provider==='wikipedia'?decodeURIComponent(new URL(url).pathname.split('/').at(-1)).replaceAll('_',' '):'');
+  const pageMatches=imageModelMatches(name,pageName);
+  for(const img of descendants(tree,'img')){
+    const alt=attr(img,'alt');const src=attr(img,'data-src')||attr(img,'src');
+    const isInfobox=provider==='wikipedia'&&/infobox/i.test(attr(ancestor(img,'table')||{},'class'));
+    const isModel=imageModelMatches(name,alt)||imageModelMatches(name,src);
+    if(isModel||isInfobox&&pageMatches){const width=Number(attr(img,'width')),height=Number(attr(img,'height'));if(width&&width<60||height&&height<60)continue;add(src,alt,isModel?90:70);}
+  }
+  if(pageMatches){add(meta('og:image:secure_url')||meta('og:image'),meta('og:image:alt')||name,80);add(meta('twitter:image'),meta('twitter:image:alt')||name,75);}
+  return candidates.sort((a,b)=>b.score-a.score).slice(0,8);
+}
+
 export function extractDevice(html,url,{title='',provider='website',description=''}={}) {
   const specs=[];const add=(key,value)=>{key=canonicalKey(key).slice(0,100);value=textOnly(value).slice(0,2000);if(!key||!value||key.length>100||/^(?:edit|bearbeiten|references|einzelnachweise|contents|inhalt|navigation|privacy|datenschutz)$/i.test(key))return;const existing=specs.find(s=>s.key.toLowerCase()===key.toLowerCase());if(existing){if(existing.value!==value&&!existing.value.includes(value)&&existing.value.length+value.length<2000)existing.value+=' / '+value;}else if(specs.length<100)specs.push({key,value,source:url});};
   let product;

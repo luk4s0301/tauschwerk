@@ -1,4 +1,5 @@
-import {extractDevice,textOnly} from './online-parser.mjs';
+import {extractDevice,textOnly,imageModelMatches} from './online-parser.mjs';
+import {loadProductImage} from './device-images.mjs';
 import {fetchPublicText,validateRemoteURL} from './remote.mjs';
 import {searchWeb,searchLaptops,rankResults} from './online-search.mjs';
 import {sourceOptions,manufacturers,classifySource,deviceKinds,detectDeviceKind,specialistSources} from './online-sources.mjs';
@@ -40,7 +41,7 @@ export async function searchOnline(query,language='all',{source='all',manufactur
   const warnings=[...new Set([...fulfilled.flatMap(r=>r.warnings || []),...responses.flatMap((r,i)=>r.status==='rejected'?[tasks[i].label+': '+r.reason.message]:[])])];
   return {results,warnings,query,source,manufacturer,kind:resolvedKind,searchedSources:tasks.map(t=>t.label)};
 }
-export async function retrieveOnline(input) {
+async function deviceDocument(input) {
   const url=validateRemoteURL(input);const wiki=url.hostname.match(/^(de|en)\.wikipedia\.org$/i);
   if(wiki){
     let title;if(url.pathname.startsWith('/wiki/'))title=decodeURIComponent(url.pathname.slice(6)).replaceAll('_',' ');else title=url.searchParams.get('title');
@@ -51,10 +52,30 @@ export async function retrieveOnline(input) {
     const source=`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(actualTitle.replaceAll(' ','_'))}`;
     const html=typeof data.parse?.text==='string'?data.parse.text:data.parse?.text?.['*'];
     if(!html)throw new Error('Die Quelle liefert keine lesbaren Gerätedaten.');
-    return {device:extractDevice(html,source,{title:actualTitle,provider:'wikipedia'}),warnings:['Wikipedia kann mehrere Modellvarianten gemeinsam beschreiben. Prüfe, welche Angaben zu deinem konkreten Gerät gehören.']};
+    return {html,source,title:actualTitle,provider:'wikipedia'};
   }
   const response=await fetchPublicText(url.href);
   if(/(?:cf-turnstile|challenge-form|anomaly-modal|verify you are human|captcha)/i.test(response.text)&&!/<table|lm-specs-table|application\/ld\+json/i.test(response.text))throw new Error('Diese Quelle verlangt eine Browser-Prüfung. Öffne die Seite im Browser oder wähle eine andere Quelle.');
   const source=classifySource(response.url);
-  return {device:extractDevice(response.text,response.url,{provider:source.kind==='manufacturer'?'manufacturer':specialistSources.find(s=>s.name===source.name)?.id||'website'}),warnings:['Die Merkmale wurden automatisch aus der Webseite ausgelesen. Prüfe Modell, Einheiten und Varianten vor der Übernahme.']};
+  return {html:response.text,source:response.url,provider:source.kind==='manufacturer'?'manufacturer':specialistSources.find(s=>s.name===source.name)?.id||'website'};
+}
+export async function retrieveOnline(input) {
+  const doc=await deviceDocument(input);
+  const device=extractDevice(doc.html,doc.source,{title:doc.title,provider:doc.provider});
+  const image=await loadProductImage(doc.html,doc.source,device,doc.provider);
+  if(image)device.image=image;
+  const warnings=[doc.provider==='wikipedia'?'Wikipedia kann mehrere Modellvarianten gemeinsam beschreiben. Prüfe, welche Angaben zu deinem konkreten Gerät gehören.':'Die Merkmale wurden automatisch aus der Webseite ausgelesen. Prüfe Modell, Einheiten und Varianten vor der Übernahme.'];
+  if(!image)warnings.push('Diese Quelle liefert kein passendes ladbares Produktbild. Du kannst im Geräte-Editor nach einem Bild aus weiteren Quellen suchen.');
+  return {device,warnings};
+}
+export async function findDeviceImage(name,source='') {
+  name=String(name||'').trim();if(name.length<2||name.length>300)throw new Error('Gib zuerst einen konkreten Modellnamen ein.');
+  const tryPage=async url=>{try{const doc=await deviceDocument(url);return await loadProductImage(doc.html,doc.source,{name},doc.provider);}catch{return null;}};
+  if(source){const image=await tryPage(source);if(image)return {image};}
+  const query=name.split(/\s*·\s*/)[0].replace(/\b\d+\s*(?:GB|TB)\b/ig,'').trim().slice(0,160);
+  const {results}=await searchOnline(query);
+  for(const row of results.filter(r=>!r.isPDF&&!r.browserOnly&&r.url!==source&&imageModelMatches(query,r.title)).slice(0,3)){
+    const image=await tryPage(row.url);if(image)return {image};
+  }
+  return {image:null,message:'Kein eindeutig passendes Produktbild gefunden. Das Kategorie-Symbol bleibt erhalten. Versuche einen genaueren Modellnamen oder eine direkte Produktquelle.'};
 }

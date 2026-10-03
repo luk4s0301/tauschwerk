@@ -58,7 +58,7 @@ function researchLinks(d) {
   return `<a class="btn small ghost" data-research="kleinanzeigen" href="https://www.kleinanzeigen.de/s-suchanfrage.html?keywords=${q}" target="_blank" rel="noopener noreferrer">Angebote ${icon('link')}</a><a class="btn small ghost" data-research="ebay" href="https://www.ebay.de/sch/i.html?_nkw=${q}&LH_Sold=1&LH_Complete=1" target="_blank" rel="noopener noreferrer">Verkaufte Artikel ${icon('link')}</a>`;
 }
 function renderChrome() {
-  $('#sidebar').innerHTML=`<div class="brand"><div class="brand-icon">${icon('swap')}</div><div><div class="brand-name">tauschwerk</div><small>DEIN TECH. DEIN DEAL.</small></div></div><div class="nav-label">DEIN WORKSPACE</div><nav class="nav">${[['compare','compare'],['catalog','grid'],['trade','swap'],['history','history'],['settings','settings']].map(([v,i])=>`<button data-action="view" data-view="${v}" class="${state.view===v?'active':''}" title="${views[v]}">${icon(i)}<span>${views[v]}</span>${v==='catalog'?`<span class="count">${store.devices.length}</span>`:v==='history'&&store.trades.length?`<span class="count">${store.trades.length}</span>`:''}</button>`).join('')}</nav><div class="sidebar-bottom">${icon('shield')}<strong>Alles auf deinem PC.</strong><p>Dein Katalog und deine Tausche werden lokal gespeichert.</p><p class="lime">● Offline bereit · v1.4</p></div>`;
+  $('#sidebar').innerHTML=`<div class="brand"><div class="brand-icon">${icon('swap')}</div><div><div class="brand-name">tauschwerk</div><small>DEIN TECH. DEIN DEAL.</small></div></div><div class="nav-label">DEIN WORKSPACE</div><nav class="nav">${[['compare','compare'],['catalog','grid'],['trade','swap'],['history','history'],['settings','settings']].map(([v,i])=>`<button data-action="view" data-view="${v}" class="${state.view===v?'active':''}" title="${views[v]}">${icon(i)}<span>${views[v]}</span>${v==='catalog'?`<span class="count">${store.devices.length}</span>`:v==='history'&&store.trades.length?`<span class="count">${store.trades.length}</span>`:''}</button>`).join('')}</nav><div class="sidebar-bottom">${icon('shield')}<strong>Alles auf deinem PC.</strong><p>Dein Katalog und deine Tausche werden lokal gespeichert.</p><p class="lime">● Offline bereit · v1.5</p></div>`;
   $('#topbar').innerHTML=`<div class="crumb">Workspace <span>/</span><b>${views[state.view]}</b></div><div class="top-right"><span class="save-status">Lokal gespeichert</span><span class="pill green"><span class="dot"></span> Lokale App</span><div class="avatar">TW</div></div>`;
   if(shared){$('#sidebar .sidebar-bottom strong').textContent='Dein gemeinsamer Katalog.';$('#sidebar .sidebar-bottom p').textContent='Geräte und Tausche werden auf deinem Home-Assistant-Server gespeichert.';$('.save-status').textContent='Auf dem Server gespeichert';$('.top-right .pill').innerHTML='<span class="dot"></span> Home Assistant';}
 }
@@ -67,7 +67,7 @@ function render() {
   normalizeSelection();renderChrome();
   $('.top-right').insertAdjacentHTML('afterbegin',`<div class="mode-toggle" aria-label="Datenmodus">${['offline','online'].map(mode=>`<button type="button" data-action="mode" data-mode="${mode}" aria-pressed="${state.mode===mode}" class="${state.mode===mode?'active':''}">${icon(mode==='offline'?'shield':'search')}${mode==='offline'?'Offline':'Online'}</button>`).join('')}</div>`);
   if(state.mode==='online') $('#sidebar .nav').insertAdjacentHTML('beforeend',`<button data-action="view" data-view="online" class="${state.view==='online'?'active':''}" title="Online-Recherche">${icon('search')}<span>Online-Recherche</span></button>`);
-  $('#sidebar .sidebar-bottom .lime').textContent=state.mode==='online'?'● Online-Modus · v1.4':shared?'● Gespeicherter Katalog · v1.4':'● Offline bereit · v1.4';
+  $('#sidebar .sidebar-bottom .lime').textContent=state.mode==='online'?'● Online-Modus · v1.5':shared?'● Gespeicherter Katalog · v1.5':'● Offline bereit · v1.5';
   if(shared)$('#sidebar .nav').insertAdjacentHTML('beforeend',`<button data-action="view" data-view="saved" class="${state.view==='saved'?'active':''}">${icon('history')}<span>Gemerkte Vergleiche</span></button>`);
   const map={compare:renderCompare,catalog:renderCatalog,online:renderOnline,trade:renderTrade,history:renderHistory,saved:renderSaved,settings:renderSettings};
   $('#main').innerHTML=map[state.view]();
@@ -79,8 +79,13 @@ function render() {
   }
   if(state.view==='trade') renderTradeResult();
 }
+function productPicture(d,cls='') {
+  const data=d.image?.data;
+  return `<span class="product-picture ${cls} ${data?'has-image':''}">${icon(categoryIcon(d.category),'picture-fallback')}${data?`<img src="${esc(data)}" alt="Produktbild von ${esc(d.name)}" loading="lazy" decoding="async">`:''}</span>`;
+}
+function imageCredit(d) {return d.image?`<a class="image-credit" href="${safeUrl(d.image.source)}" target="_blank" rel="noopener noreferrer">Bildquelle: ${esc(new URL(d.image.source).hostname)} ${icon('link')}</a>`:'';}
 function visual(d) {
-  return `<div class="device-visual" aria-hidden="true">${d.category==='Handys'?'<div class="phone-art"><div class="camera-block"><div class="lens"></div><div class="lens"></div><div class="lens"></div></div><div class="phone-mark"></div></div>':icon(categoryIcon(d.category),'device-icon')}</div>`;
+  return `<div class="device-visual">${productPicture(d,'picture-large')}</div>${imageCredit(d)}`;
 }
 function compareCard(d,index) {
   const source=d.source?`<a href="${safeUrl(d.source)}" target="_blank" rel="noopener noreferrer">${esc(classifySource(d.source).name)} ${icon('link')}</a>`:'<span class="muted">Eigener Eintrag</span>';
@@ -104,11 +109,11 @@ function matches(d,q,cat) {return (cat==='Alle' || d.category===cat) && `${d.bra
 function catalogCards() {
   const found=store.devices.filter(d=>matches(d,state.query,state.category));
   if(!found.length) return `<div class="panel empty"><h2>Kein Gerät gefunden.</h2><p>Lege das gesuchte Modell selbst an oder ändere deinen Filter.</p>${btn(icon('plus')+' Eigenes Gerät','new','primary')}</div>`;
-  return `<div class="catalog-grid">${found.map(d=>`<article class="catalog-card"><div class="card-top"><div class="catalog-symbol">${icon(categoryIcon(d.category))}</div><span class="pill">${esc(d.category)}</span></div><h3>${esc(d.name)}</h3><div class="device-sub">${esc(d.brand)} · ${d.specs.length} Merkmale</div><p class="summary">${esc(d.specs.slice(0,2).map(s=>s.value).join(' · '))}</p><div class="card-value"><small>${estimateLabel(d)}</small><b>${money(estimated(d))}</b></div><div class="actions">${btn(state.selected.includes(d.id)?icon('check')+' Im Vergleich':icon('plus')+' Vergleichen','toggle-select','small '+(state.selected.includes(d.id)?'primary':'ghost'),`data-id="${esc(d.id)}"`)}${btn(icon('edit'),'edit','icon-only',`data-id="${esc(d.id)}" aria-label="${esc(d.name)} bearbeiten"`)}</div></article>`).join('')}</div>`;
+  return `<div class="catalog-grid">${found.map(d=>`<article class="catalog-card"><div class="card-top">${productPicture(d,'picture-catalog')}<span class="pill">${esc(d.category)}</span></div><h3>${esc(d.name)}</h3><div class="device-sub">${esc(d.brand)} · ${d.specs.length} Merkmale</div><p class="summary">${esc(d.specs.slice(0,2).map(s=>s.value).join(' · '))}</p><div class="card-value"><small>${estimateLabel(d)}</small><b>${money(estimated(d))}</b></div><div class="actions">${btn(state.selected.includes(d.id)?icon('check')+' Im Vergleich':icon('plus')+' Vergleichen','toggle-select','small '+(state.selected.includes(d.id)?'primary':'ghost'),`data-id="${esc(d.id)}"`)}${btn(icon('edit'),'edit','icon-only',`data-id="${esc(d.id)}" aria-label="${esc(d.name)} bearbeiten"`)}</div></article>`).join('')}</div>`;
 }
 function renderCatalog() {
-  return heading('DEINE TECH-SAMMLUNG','Ein Katalog, der mit dir wächst.','Modelle, Varianten und beliebige Kategorien. Alle Einträge und Merkmale lassen sich bearbeiten.',btn(icon('plus')+' Neues Gerät','new','primary'))+
-  `<div class="stat-row"><span><strong>${store.devices.length}</strong> Geräte</span><span><strong>${new Set(store.devices.map(d=>d.category)).size}</strong> Kategorien</span><span><strong>${store.devices.filter(d=>estimated(d)!==null).length}</strong> mit Preisbasis</span></div><div class="toolbar"><div class="toolbar-left"><select id="catalog-category" aria-label="Kategorie filtern">${categoryOptions(state.category,true)}</select></div><div class="search-box">${icon('search')}<input id="catalog-search" value="${esc(state.query)}" placeholder="Gerät, Marke oder Merkmal suchen …" aria-label="Katalog durchsuchen"></div></div><div id="catalog-results">${catalogCards()}</div>`;
+  return heading('DEINE TECH-SAMMLUNG','Ein Katalog, der mit dir wächst.','Modelle, Varianten und beliebige Kategorien. Alle Einträge und Merkmale lassen sich bearbeiten.',(state.mode==='online'?btn(state.imagesBusy?'Bilder laden …':'Produktbilder ergänzen','catalog-images','ghost',state.imagesBusy?'disabled':''):'')+btn(icon('plus')+' Neues Gerät','new','primary'))+
+  `<div class="stat-row"><span><strong>${store.devices.length}</strong> Geräte</span><span><strong>${new Set(store.devices.map(d=>d.category)).size}</strong> Kategorien</span><span><strong>${store.devices.filter(d=>estimated(d)!==null).length}</strong> mit Preisbasis</span></div><div class="toolbar"><div class="toolbar-left"><select id="catalog-category" aria-label="Kategorie filtern">${categoryOptions(state.category,true)}</select></div><div class="search-box">${icon('search')}<input id="catalog-search" value="${esc(state.query)}" placeholder="Gerät, Marke oder Merkmal suchen …" aria-label="Katalog durchsuchen"></div></div>${state.imageProgress?`<p class="help" role="status">${esc(state.imageProgress)}</p>`:''}<div id="catalog-results">${catalogCards()}</div>`;
 }
 
 function renderOnline() {
@@ -141,12 +146,12 @@ function renderBrowserSearch() {
 }
 function renderOnlineSelection() {
   const devices=selectedDevices();
-  return `<section class="online-selection" aria-label="Geräte für den Vergleich"><div class="online-selection-head"><div><h2>Dein Vergleich · ${devices.length} von 4 Geräten</h2><p>${devices.length===0?'Wähle dein erstes Gerät aus dem Netz.':'Suche jetzt das nächste Gerät online. Deine bisherige Auswahl bleibt erhalten.'}</p></div>${btn('Vergleich ansehen '+icon('arrow'),'view','ghost',`data-view="compare" ${devices.length?'':'disabled'}`)}</div>${devices.length?`<div class="online-selection-devices">${devices.map(d=>`<div class="online-selection-device">${icon(categoryIcon(d.category))}<span>${esc(d.name)}</span>${btn(icon('close'),'remove-select','icon-only',`data-id="${esc(d.id)}" aria-label="${esc(d.name)} aus Vergleich entfernen"`)}</div>`).join('')}</div>`:''}</section>`;
+  return `<section class="online-selection" aria-label="Geräte für den Vergleich"><div class="online-selection-head"><div><h2>Dein Vergleich · ${devices.length} von 4 Geräten</h2><p>${devices.length===0?'Wähle dein erstes Gerät aus dem Netz.':'Suche jetzt das nächste Gerät online. Deine bisherige Auswahl bleibt erhalten.'}</p></div>${btn('Vergleich ansehen '+icon('arrow'),'view','ghost',`data-view="compare" ${devices.length?'':'disabled'}`)}</div>${devices.length?`<div class="online-selection-devices">${devices.map(d=>`<div class="online-selection-device">${productPicture(d,'picture-thumb')}<span>${esc(d.name)}</span>${btn(icon('close'),'remove-select','icon-only',`data-id="${esc(d.id)}" aria-label="${esc(d.name)} aus Vergleich entfernen"`)}</div>`).join('')}</div>`:''}</section>`;
 }
 function renderOnlinePreview(d) {
   const cached=store.devices.some(x=>x.id===d.id);
   const highlights=d.specs.filter(s=>/^(?:Prozessor|Kerne|Threads|Grafikspeicher|Grafik|Display|Display · Größe|Arbeitsspeicher|Speicher|Akku|TDP|Gewicht|Sockel|Bildwiederholrate)$/.test(s.key)&&s.value.length<160).slice(0,6);
-  return `<section class="panel online-preview"><div class="panel-head"><div><span class="eyebrow">SCHRITT 3 · DEIN GERÄT PRÜFEN</span><h2>${esc(d.name.toLowerCase().startsWith(d.brand.toLowerCase())?d.name:d.brand+' '+d.name)}</h2></div><span class="pill green">${d.specs.length} Merkmale</span></div><div class="panel-body"><div class="online-preview-summary"><span class="pill">${esc(d.category)}</span><span class="muted">Abruf: ${date(d.checked)}</span><a href="${safeUrl(d.source)}" target="_blank" rel="noopener noreferrer">${esc(classifySource(d.source).name)} öffnen ${icon('link')}</a></div><div class="spec-highlights">${highlights.map(s=>`<div><small>${esc(s.key)}</small><strong>${esc(s.value)}</strong></div>`).join('')}</div><div class="online-preview-actions">${btn(icon('compare')+' Online vergleichen','online-compare','primary')}${btn(icon('download')+(cached?' Als neue Offline-Variante speichern':' Offline speichern & bearbeiten'),'online-save','ghost')}<small class="muted">Vergleichen fügt das Gerät zu deiner Auswahl hinzu. Speichern öffnet den Editor für deinen Katalog.</small></div><details class="spec-details"><summary>Alle ${d.specs.length} technischen Merkmale ansehen</summary><div class="table-wrap"><table class="spec-table"><thead><tr><th>Merkmal</th><th>Ausgelesener Wert</th></tr></thead><tbody>${d.specs.map(s=>`<tr><td>${esc(s.key)}</td><td>${esc(s.value)}</td></tr>`).join('')}</tbody></table></div><small class="muted">${esc(d.provenance?.attribution || '')}</small></details></div></section>`;
+  return `<section class="panel online-preview"><div class="panel-head"><div><span class="eyebrow">SCHRITT 3 · DEIN GERÄT PRÜFEN</span><h2>${esc(d.name.toLowerCase().startsWith(d.brand.toLowerCase())?d.name:d.brand+' '+d.name)}</h2></div><span class="pill green">${d.specs.length} Merkmale</span></div><div class="panel-body">${d.image?`<div class="preview-product">${productPicture(d,'picture-preview')}${imageCredit(d)}</div>`:''}<div class="online-preview-summary"><span class="pill">${esc(d.category)}</span><span class="muted">Abruf: ${date(d.checked)}</span><a href="${safeUrl(d.source)}" target="_blank" rel="noopener noreferrer">${esc(classifySource(d.source).name)} öffnen ${icon('link')}</a></div><div class="spec-highlights">${highlights.map(s=>`<div><small>${esc(s.key)}</small><strong>${esc(s.value)}</strong></div>`).join('')}</div><div class="online-preview-actions">${btn(icon('compare')+' Online vergleichen','online-compare','primary')}${btn(icon('download')+(cached?' Als neue Offline-Variante speichern':' Offline speichern & bearbeiten'),'online-save','ghost')}<small class="muted">Vergleichen fügt das Gerät zu deiner Auswahl hinzu. Speichern öffnet den Editor für deinen Katalog.</small></div><details class="spec-details"><summary>Alle ${d.specs.length} technischen Merkmale ansehen</summary><div class="table-wrap"><table class="spec-table"><thead><tr><th>Merkmal</th><th>Ausgelesener Wert</th></tr></thead><tbody>${d.specs.map(s=>`<tr><td>${esc(s.key)}</td><td>${esc(s.value)}</td></tr>`).join('')}</tbody></table></div><small class="muted">${esc(d.provenance?.attribution || '')}</small></details></div></section>`;
 }
 let onlineController;
 let onlineGeneration=0;
@@ -234,7 +239,7 @@ function modalHead(title) {return `<div class="modal-head"><h2>${title}</h2>${bt
 function showModal(content) {modal.innerHTML=content;if(!modal.open) modal.showModal();}
 function pickerRows() {
   const found=store.devices.filter(d=>matches(d,state.pickerQuery,state.pickerCategory));
-  return found.length?found.map(d=>`<div class="picker-row">${icon(categoryIcon(d.category))}<div class="info"><b>${esc(d.name)}</b><small>${esc(d.brand)} · ${esc(d.category)}</small></div>${btn(state.selected.includes(d.id)?icon('check')+' Gewählt':icon('plus')+' Wählen','picker-toggle',state.selected.includes(d.id)?'small primary':'small ghost',`data-id="${esc(d.id)}" ${state.selected.length>=4&&!state.selected.includes(d.id)?'disabled':''}`)}</div>`).join(''):`<div class="empty"><p>Kein passendes Gerät. Lege ein eigenes Modell an.</p>${btn('Eigenes Gerät','new','primary')}</div>`;
+  return found.length?found.map(d=>`<div class="picker-row">${productPicture(d,'picture-thumb')}<div class="info"><b>${esc(d.name)}</b><small>${esc(d.brand)} · ${esc(d.category)}</small></div>${btn(state.selected.includes(d.id)?icon('check')+' Gewählt':icon('plus')+' Wählen','picker-toggle',state.selected.includes(d.id)?'small primary':'small ghost',`data-id="${esc(d.id)}" ${state.selected.length>=4&&!state.selected.includes(d.id)?'disabled':''}`)}</div>`).join(''):`<div class="empty"><p>Kein passendes Gerät. Lege ein eigenes Modell an.</p>${btn('Eigenes Gerät','new','primary')}</div>`;
 }
 function openPicker() {
   if(state.mode==='online'){
@@ -246,6 +251,28 @@ function openPicker() {
 }
 function specEditorRow(s={key:'',value:''}) {return `<div class="spec-editor-row"><input class="spec-key" placeholder="Merkmal" maxlength="100" value="${esc(s.key)}" aria-label="Merkmal"><input class="spec-value" placeholder="Wert, z. B. 256 GB" maxlength="2000" value="${esc(s.value)}" aria-label="Merkmalswert">${btn(icon('close'),'remove-row','icon-only','aria-label="Merkmal entfernen"')}</div>`;}
 function offerEditorRow(o={price:'',url:'',note:'',date:today()}) {return `<div class="offer-editor-row"><input class="offer-price" type="number" min="0.01" max="10000000" step="any" value="${esc(o.price)}" placeholder="Preis (€)" aria-label="Angebotspreis"><input class="offer-url" type="url" maxlength="2000" value="${esc(o.url)}" placeholder="Angebotslink (optional)" aria-label="Angebotslink">${btn(icon('close'),'remove-row','icon-only','aria-label="Preisbeispiel entfernen"')}<input class="offer-note" maxlength="2000" value="${esc(o.note)}" placeholder="Variante, Zustand, Angebot oder Verkaufspreis …" aria-label="Notiz zum Preis"><label class="field offer-date">Preisdatum<input type="date" class="offer-date-value" value="${esc(o.date)}"></label></div>`;}
+function editorPicture() {
+  const d=state.editorDraft;
+  return `<div class="editor-product">${productPicture(d,'picture-editor')}<div><b>Produktbild</b><p class="help">${d.image?'Wird mit dem Gerät gespeichert – auch im Offline-Katalog und JSON-Backup.':'Lade das passende Modellbild aus deiner Produktquelle oder der Online-Suche.'}</p><div class="actions">${btn(d.image?'Bild aktualisieren':'Produktbild suchen','editor-image','small ghost',state.mode!=='online'?'disabled':'')}${d.image?btn('Bild entfernen','remove-image','small ghost'):''}</div>${state.mode!=='online'?'<small class="muted">Zum Suchen oben den Online-Modus einschalten.</small>':''}${imageCredit(d)}</div></div>`;
+}
+async function loadEditorPicture(button) {
+  const draft=readEditor();button.disabled=true;button.textContent='Passendes Bild suchen …';
+  try {const response=await api('/api/online/image?name='+encodeURIComponent(draft.name)+'&source='+encodeURIComponent(draft.source));const answer=await response.json();if(!response.ok)throw Error(answer.error);if(!$('#device-form')||state.editing!==draft.id)return;if($('#device-form').elements.name.value.trim()!==draft.name)throw Error('Der Modellname wurde geändert. Bitte erneut nach dem passenden Bild suchen.');if(!answer.image)return toast(answer.message,true);draft.image=answer.image;validateStore({version:1,devices:[draft],trades:[]});state.editorDraft.image=answer.image;$('#editor-picture').innerHTML=editorPicture();toast('Produktbild geladen. Mit Speichern übernehmen.');}
+  catch(error){toast(error.message,true);}finally{if(button.isConnected){button.disabled=false;button.textContent='Produktbild suchen';}}
+}
+async function loadCatalogPictures() {
+  if(state.mode!=='online'||state.imagesBusy)return;
+  const missing=store.devices.filter(d=>!d.image).map(d=>({id:d.id,name:d.name,source:d.source}));
+  if(!missing.length)return toast('Alle Geräte haben bereits ein Produktbild.');
+  state.imagesBusy=true;let loaded=0,checked=0;state.imageProgress='Produktbilder werden gesucht …';render();
+  try{for(const d of missing){
+    if(state.mode!=='online')break;
+    const response=await api('/api/online/image?name='+encodeURIComponent(d.name)+'&source='+encodeURIComponent(d.source||''));const answer=await response.json();
+    if(state.mode!=='online')break;
+    if(response.ok&&answer.image){let applied=false;await save(next=>{const current=next.devices.find(x=>x.id===d.id);if(current&&current.name===d.name&&!current.image){current.image=answer.image;applied=true;}});if(applied)loaded++;}
+    checked++;state.imageProgress=`${checked} von ${missing.length} Geräten geprüft · ${loaded} Produktbilder gespeichert.`;render();
+  }}catch(error){toast(error.message,true);}finally{state.imagesBusy=false;state.imageProgress=`${loaded} Produktbilder gespeichert. Für Geräte ohne passenden Treffer bleibt das Kategorie-Symbol.`;render();}
+}
 function newDevice() {return {id:uuid(),name:'',brand:'',category:state.category==='Alle'?'Handys':state.category,source:'',notes:'',value:null,checked:'',specs:[],offers:[]};}
 function editDevice(id,draft) {
   const d=draft?structuredClone(draft):id?structuredClone(device(id)):newDevice();if(!d)return;
@@ -260,7 +287,7 @@ function editDevice(id,draft) {
   form.elements.value.placeholder='z. B. 1.500,50';
   const help=$('#spec-editor').previousElementSibling;help.textContent+=' Nur ausgefüllte Merkmale werden gespeichert; leere Vorlagenfelder sind optional.';
   for(const price of modal.querySelectorAll('.offer-price')){price.type='text';price.inputMode='decimal';}
-  form.querySelector('.modal-content').insertAdjacentHTML('afterbegin','<div class="dialog-notice" role="alert" hidden></div>');
+  form.querySelector('.modal-content').insertAdjacentHTML('afterbegin','<div class="dialog-notice" role="alert" hidden></div><div id="editor-picture">'+editorPicture()+'</div>');
 }
 function normalizeSource(value) {value=String(value || '').trim();return value && !/^[a-z][a-z\d+.-]*:/i.test(value)?'https://'+value:value;}
 function readEditor() {
@@ -274,6 +301,7 @@ function readEditor() {
   const price=parsePrice(data.get('value'));if(price!==null&&(!Number.isFinite(price)||price>10000000))throw new Error('Ungültiger Preis. Möglich sind z. B. 1500,50 oder 1.500,50.');
   const previous=state.editorDraft || device(state.editing);
   const d={id:state.editing,name:String(data.get('name')).trim(),brand:String(data.get('brand')).trim(),category:String(data.get('category')).trim(),source:normalizeSource(data.get('source')),notes:String(data.get('notes')),checked:String(data.get('checked')),value:price,specs,offers};
+  if(previous?.image&&(previous.name===d.name||previous.image.alt===d.name))d.image=structuredClone(previous.image);
   if(previous?.sourceType)d.sourceType=previous.sourceType;if(previous?.provenance)d.provenance={...previous.provenance,needsReview:false};
   if(!d.name)throw new Error('Gib einen Gerätenamen ein.');if(!d.category)throw new Error('Wähle eine Kategorie oder gib eine eigene ein.');
   validateStore({version:1,devices:[d],trades:[]});return d;
@@ -318,6 +346,9 @@ document.addEventListener('click',async event=>{
       const c=store.savedComparisons?.find(c=>c.id===id);if(!c)return;
       state.mode='online';state.onlineDevices=structuredClone(c.devices).map((d,i)=>({...d,id:'remembered-'+c.id+'-'+i}));state.selected=state.onlineDevices.map(d=>d.id);state.view='compare';render();saveUI();
     }
+    else if(action==='editor-image') await loadEditorPicture(target);
+    else if(action==='remove-image') {delete state.editorDraft.image;$('#editor-picture').innerHTML=editorPicture();}
+    else if(action==='catalog-images') await loadCatalogPictures();
     else if(action==='online-fetch') {const r=state.onlineResults[Number(target.dataset.index)];if(r)await runOnline('device','/api/online/device?url='+encodeURIComponent(r.url));}
     else if(action==='online-compare') {
       const d=state.onlinePreview;if(!d)return;
@@ -439,3 +470,6 @@ async function start() {
   } catch(e) {$('#main').innerHTML=`<div class="fatal"><h1>Tauschwerk konnte nicht starten.</h1><p>${esc(e.message)}</p></div>`;}
 }
 start();
+
+// Broken or unsupported images retain the readable category symbol. No remote browser requests.
+document.addEventListener('error',event=>{if(event.target instanceof HTMLImageElement&&event.target.closest('.product-picture'))event.target.closest('.product-picture').classList.remove('has-image');},true);

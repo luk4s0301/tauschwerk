@@ -1,6 +1,14 @@
-# Tauschwerk 1.4
+# Tauschwerk 1.5
 
 Lokale Windows-App zum Vergleichen von Geräten und Bewerten von Tauschangeboten. Zwei Datenmodi: eigene Offline-Datenbank oder Online-Recherche mit anschließendem Offline-Import.
+
+## Produktbilder
+
+Beim Laden eines Online-Datenblatts übernimmt die App ein passendes Produktbild aus strukturierten Produktdaten, Modellbildern, Wikipedia-Infoboxen oder den Bildmetadaten der Seite. Modellgenerationen und Zusätze wie Pro, Max, Ultra und Plus werden geprüft; die Farbe ist für die Suche nicht ausschlaggebend. Logos und fremde Modellbilder werden ausgelassen. Manche Quellen sperren Bilder oder liefern kein passendes Foto; dann bleibt das Kategorie-Symbol sichtbar.
+
+Die Bilder erscheinen in der Vorschau, im Vergleich, im Katalog und in der Geräteauswahl. „Offline speichern & bearbeiten“ speichert das Bild zusammen mit dem Gerät. Bilddaten werden im Geräteeintrag gespeichert, sind dadurch auch im JSON-Backup enthalten und auf allen Geräten des Home-Assistant-Katalogs verfügbar. Der Browser lädt keine Bilder direkt von fremden Webseiten. Unterstützt sind PNG, JPEG, WebP und AVIF bis 512 KB; SVG-Dateien werden nicht übernommen. Die Bildquelle bleibt im Editor und Vergleich verlinkt.
+
+Bestehende Geräte: Im Online-Modus den Katalog öffnen und „Produktbilder ergänzen“ wählen. Die App sucht Bilder für Einträge ohne Foto. Einzelne Bilder lassen sich im Geräte-Editor mit „Produktbild suchen“ oder „Bild aktualisieren“ laden und mit „Bild entfernen“ entfernen. Änderungen im Editor werden erst durch „Speichern“ übernommen. Bei einem geänderten Modellnamen wird ein bisheriges Bild nicht ungeprüft weiterverwendet.
 
 ## Home Assistant: gemeinsame Server-Datenbank
 

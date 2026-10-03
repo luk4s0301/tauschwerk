@@ -40,11 +40,16 @@ export function validateStore(store) {
   const fail = m => { throw new Error(m); };
   const str = (v, n = 300) => typeof v === 'string' && v.length <= n;
   const safeUrl = v => !v || (str(v, 2000) && /^https?:\/\//i.test(v));
+  const imageUrl=v=>{try{const u=new URL(v);return str(v,2000)&&u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443');}catch{return false;}};
   if (!store || store.version !== 1 || !Array.isArray(store.devices) || store.devices.length > 10000 || !Array.isArray(store.trades) || store.trades.length > 5000) fail('Ungültiges Backup-Format (Version 1 erwartet).');
   const ids = new Set();
   for (const d of store.devices) {
     if (!d || !str(d.id, 100) || !d.id || ids.has(d.id) || !str(d.name) || !d.name.trim() || !str(d.brand) || !str(d.category, 80)) fail('Ungültiges Gerät oder doppelte Geräte-ID.');
     ids.add(d.id);
+    if(d.image!==undefined&&d.image!==null){
+      const i=d.image;
+      if(!i||typeof i!=='object'||!str(i.data,700000)||!/^data:image\/(?:jpeg|png|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$/.test(i.data)||!imageUrl(i.url)||!imageUrl(i.source)||!str(i.alt)||!str(i.attribution??'',2000))fail('Ungültiges Produktbild.');
+    }
     if (!Array.isArray(d.specs) || d.specs.length > 100 || d.specs.some(s => !s || !str(s.key, 100) || !str(s.value, 2000))) fail('Ungültige technische Daten.');
     if (!Array.isArray(d.offers) || d.offers.length > 100 || d.offers.some(o => !o || !Number.isFinite(o.price) || o.price <= 0 || o.price > 10000000 || !safeUrl(o.url) || !str(o.note ?? '', 2000) || !str(o.date ?? '', 50))) fail('Ungültige Vergleichspreise.');
     if (!safeUrl(d.source ?? '') || !str(d.notes ?? '', 10000) || !str(d.checked ?? '', 50) || (d.value !== null && (!Number.isFinite(d.value) || d.value < 0 || d.value > 10000000))) fail('Ungültige Gerätewerte oder Quellen.');

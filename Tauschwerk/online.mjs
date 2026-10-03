@@ -74,7 +74,8 @@ export async function findDeviceImage(name,source='') {
   if(source){const image=await tryPage(source);if(image)return {image};}
   const query=name.split(/\s*·\s*/)[0].replace(/\b\d+\s*(?:GB|TB)\b/ig,'').trim().slice(0,160);
   const {results}=await searchOnline(query);
-  for(const row of results.filter(r=>!r.isPDF&&!r.browserOnly&&r.url!==source&&imageModelMatches(query,r.title)).slice(0,3)){
+  const priority=r=>['NanoReview','GPU-Monkey'].includes(r.sourceName)?2:r.provider==='manufacturer'?1:0;
+  for(const row of results.filter(r=>!r.isPDF&&!r.browserOnly&&r.url!==source&&imageModelMatches(query,r.title)).sort((a,b)=>priority(b)-priority(a)).slice(0,3)){
     const image=await tryPage(row.url);if(image)return {image};
   }
   return {image:null,message:'Kein eindeutig passendes Produktbild gefunden. Das Kategorie-Symbol bleibt erhalten. Versuche einen genaueren Modellnamen oder eine direkte Produktquelle.'};

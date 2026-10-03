@@ -14,6 +14,7 @@ test('Modelle unterscheiden Generationen und Pro/Max/Ultra; Speicher ist für da
   for(const candidate of ['iPhone 17 Pro','iPhone 18 Pro Max','iPhone 18'])assert.equal(imageModelMatches('iPhone 18 Pro',candidate),false);
   assert.equal(imageModelMatches('Galaxy S25','Galaxy S25 Ultra'),false);
   assert.equal(imageModelMatches('Galaxy S25+','Galaxy S25'),false);
+  assert.equal(imageModelMatches('GeForce RTX 5080','Gigabyte AORUS GeForce RTX 5080 Master'),false);
 });
 test('Passendes Product-JSON-LD, relative URLs und Modellbilder werden priorisiert',()=>{
   const json=[{'@type':'Product',name:'Galaxy S25 Ultra',image:'https://example.com/ultra.jpg'},{'@type':'Product',name,image:{contentUrl:'/correct.png'}}];
@@ -21,7 +22,7 @@ test('Passendes Product-JSON-LD, relative URLs und Modellbilder werden priorisie
   assert.equal(candidates[0].url,'https://example.com/correct.png');assert.ok(!candidates.some(c=>c.url.includes('ultra')));
 });
 test('Keine Logos, Chipsymbole, internen Schemas oder Bilder fremder Modelle',()=>{
-  const bad='<title>Galaxy S25 Ultra</title><meta property="og:image" content="/ultra.png"><img alt="Galaxy S25" src="javascript:alert(1)"><img alt="Galaxy S25" src="/logo.png"><img alt="Galaxy S25" src="/icon_chip.png">';
+  const bad='<title>Galaxy S25 Ultra</title><meta property="og:image" content="/ultra.png"><img alt="Galaxy S25" src="javascript:alert(1)"><img alt="Galaxy S25" src="/logo.png"><img alt="Galaxy S25" src="/icon_chip.png"><nav><img alt="Galaxy S25" src="/navigation.png"></nav><img src="/galaxy-s25/specs/unrelated-photo.png"><img alt="Galaxy S25" src="/site/localnav/duo.png">';
   assert.deepEqual(extractImageCandidates(bad,source,{name}),[]);
 });
 test('Wikipedia nimmt das Infobox-Produktbild statt Navigationsgrafiken',()=>{

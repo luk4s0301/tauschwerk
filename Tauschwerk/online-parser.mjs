@@ -100,12 +100,13 @@ export function imageModelMatches(requested,candidate) {
   const wanted=tokens(requested).filter(t=>!['apple','samsung','sony','microsoft','google','nvidia','amd','intel','valve','technical','specifications','technische','daten'].includes(t));
   const actual=tokens(candidate);
   const variants=['pro','max','ultra','plus','mini','lite','air','fe'];
-  return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t));
+  const gpuVendors=['asus','msi','gigabyte','aorus','zotac','palit','gainward','sapphire','powercolor','xfx'];
+  return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t))&&(!wanted.some(t=>['geforce','radeon'].includes(t))||gpuVendors.every(t=>!actual.includes(t)||wanted.includes(t)));
 }
 export function extractImageCandidates(html,url,{name,provider='website'}={}) {
   const tree=parseTree(html),candidates=[];
   const add=(value,alt='',score=0)=>{
-    if(!value||/logo|favicon|sprite|banner|badge|chart|benchmark|graph|tracking|icon[_-]|size_and_weight|diagram|pixel\.gif|\.svg(?:\?|$)/i.test(value+' '+alt))return;
+    if(!value||/logo|favicon|sprite|banner|badge|chart|benchmark|graph|tracking|localnav|icon[_-]|size_and_weight|diagram|pixel\.gif|\.svg(?:\?|$)/i.test(value+' '+alt))return;
     let imageURL;try{imageURL=new URL(value,url);if(imageURL.protocol!=='https:'||imageURL.username||imageURL.password)return;}catch{return;}
     if(!candidates.some(c=>c.url===imageURL.href))candidates.push({url:imageURL.href,alt:alt||name,score});
   };
@@ -117,9 +118,10 @@ export function extractImageCandidates(html,url,{name,provider='website'}={}) {
   const pageName=meta('og:title')||textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'')||cleanNode([...descendants(tree,'h1')][0]||{children:[]})||(provider==='wikipedia'?decodeURIComponent(new URL(url).pathname.split('/').at(-1)).replaceAll('_',' '):'');
   const pageMatches=imageModelMatches(name,pageName);
   for(const img of descendants(tree,'img')){
+    if(ancestor(img,'nav')||ancestor(img,'footer'))continue;
     const alt=attr(img,'alt');const src=attr(img,'data-src')||attr(img,'src');
     const isInfobox=provider==='wikipedia'&&/infobox/i.test(attr(ancestor(img,'table')||{},'class'));
-    const isModel=imageModelMatches(name,alt)||imageModelMatches(name,src);
+    const isModel=imageModelMatches(name,alt)||imageModelMatches(name,src.split('/').at(-1));
     if(isModel||isInfobox&&pageMatches){const width=Number(attr(img,'width')),height=Number(attr(img,'height'));if(width&&width<60||height&&height<60)continue;add(src,alt,isModel?90:70);}
   }
   if(pageMatches){add(meta('og:image:secure_url')||meta('og:image'),meta('og:image:alt')||name,80);add(meta('twitter:image'),meta('twitter:image:alt')||name,75);}

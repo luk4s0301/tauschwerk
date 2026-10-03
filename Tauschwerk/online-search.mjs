@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import {fetchPublicText,validateRemoteURL} from './remote.mjs';
 import {textOnly,decodeEntities} from './online-parser.mjs';
-import {classifySource,manufacturers,detectManufacturer,domainMatches} from './online-sources.mjs';
+import {classifySource,manufacturers,detectManufacturer,domainMatches,isExcludedSource} from './online-sources.mjs';
 
 const normalize=s=>String(s).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 export function matchesQuery(row,query){
@@ -12,6 +12,7 @@ export function matchesQuery(row,query){
   return tokens.length>0&&modelTokens.every(t=>identity.split(' ').includes(t))&&tokens.filter(t=>haystack.includes(t)||identity.includes(t)).length>=Math.ceil(tokens.length*0.7);
 }
 export function result(title,url,description,engine){
+  if(isExcludedSource(url))return null;
   try{url=validateRemoteURL(url).href;}catch{return null;}
   const source=classifySource(url);
   return {id:'search-'+crypto.createHash('sha256').update(url).digest('hex').slice(0,20),title:textOnly(title).slice(0,300),description:textOnly(description).slice(0,700),url,provider:source.kind,sourceName:source.name,manufacturer:source.manufacturer,host:source.host,engine,isPDF:/\.pdf(?:$|[?#])/i.test(url)};
@@ -37,28 +38,43 @@ function canonicalURL(input){const u=new URL(input);for(const key of [...u.searc
 export function rankResults(rows,query,{source='all',manufacturer='all'}={}){
   const unique=new Map();
   for(const row of rows){
-    if(!matchesQuery(row,query))continue;
+    if(isExcludedSource(row.url)||!matchesQuery(row,query))continue;
     if(source==='manufacturer'&&row.provider!=='manufacturer')continue;
     if(manufacturer!=='all'&&row.provider==='manufacturer'&&row.manufacturer!==manufacturer)continue;
     if(manufacturer!=='all'&&row.provider!=='manufacturer'&&!matchesQuery(row,manufacturers.find(m=>m.id===manufacturer)?.id || ''))continue;
     const key=canonicalURL(row.url);if(!unique.has(key))unique.set(key,row);
   }
-  const score=r=>(r.provider==='manufacturer'?40:r.provider==='database'?25:r.provider==='wikipedia'?0:10)+(/spec|tech|daten|psref|support|laptop-specs/i.test(r.title+' '+r.url)?15:0)+(r.url.includes('/laptop-specs/')?20:0)+(normalize(r.title).includes(normalize(query))?20:0)-(r.isPDF?10:0);
+  const score=r=>(r.provider==='manufacturer'?40:r.sourceName==='Geizhals'?35:r.provider==='database'?25:10)+(/spec|tech|daten|psref|support|laptop-specs/i.test(r.title+' '+r.url)?15:0)+(r.url.includes('/laptop-specs/')?20:0)+(normalize(r.title).includes(normalize(query))?20:0)-(r.isPDF?10:0);
   return [...unique.values()].sort((a,b)=>score(b)-score(a)).slice(0,32);
 }
 export async function searchWeb(query,language,{source='all',manufacturer='all',domains=[]}={},fetchText=fetchPublicText){
-  const maker=manufacturers.find(m=>m.id===manufacturer) || (source==='manufacturer'?detectManufacturer(query):undefined);
-  const search=query+' '+(language==='de'?'technische Daten':'specifications')+(domains.length?' site:'+domains[0]:maker&&source==='manufacturer'?' site:'+maker.domains[0]:'');
-  const rank=rows=>rankResults(rows,query,{source,manufacturer}).filter(r=>!domains.length||domains.some(d=>domainMatches(new URL(r.url).hostname,d)));
-  const warnings=[];
-  const ddg=new URL('https://html.duckduckgo.com/html/');ddg.searchParams.set('q',search);ddg.searchParams.set('kl',language==='de'?'de-de':'us-en');
-  try{const rows=rank(parseDuckDuckGo((await fetchText(ddg.href)).text));if(rows.length)return {results:rows,warnings};}catch{}
-  const bing=new URL('https://www.bing.com/search');bing.searchParams.set('q',search);bing.searchParams.set('format','rss');bing.searchParams.set('mkt',language==='de'?'de-DE':'en-US');
-  try{
-    const results=rank(parseBingRSS((await fetchText(bing.href)).text));
-    if(!results.length)warnings.push('Die Websuche hat keine ausreichend passenden Treffer geliefert. Nutze einen anderen Quellenfilter oder die Suche im Browser.');
-    return {results,warnings};
-  }catch(error){return {results:[],warnings:['Websuche momentan nicht erreichbar: '+error.message]};}
+  query=query.replace(/\bps([345])\b/ig,'PlayStation $1');
+  const maker=manufacturers.find(m=>m.id===manufacturer) || detectManufacturer(query);
+  const languages=language==='all'?['de','en']:[language];
+  const restrictions=domains.length?domains:source==='manufacturer'&&maker?maker.domains:[''];
+  const searches=languages.flatMap(lang=>restrictions.map(domain=>({lang,search:query+' '+(lang==='de'?'technische Daten':'specifications')+(domain?' site:'+domain:'')})));
+  // A global query also covers products and brands absent from our local catalogs.
+  if(!domains.length&&source!=='manufacturer'){
+    for(const domain of maker?.domains || [])searches.push({lang:languages[0],search:query+' specifications site:'+domain});
+    searches.push({lang:languages[0],search:query});
+  }
+  const responses=await Promise.allSettled(searches.map(async ({lang,search})=>{
+    const rows=[],errors=[];
+    // Merge both engines: one provider may omit the official specification page.
+    const engines=[['DuckDuckGo','https://html.duckduckgo.com/html/',parseDuckDuckGo],['Bing','https://www.bing.com/search',parseBingRSS]];
+    const answers=await Promise.allSettled(engines.map(async ([name,base,parse])=>{
+      const url=new URL(base);url.searchParams.set('q',search+' -site:wikipedia.org -site:wikimedia.org -site:wikidata.org');
+      if(name==='Bing'){url.searchParams.set('format','rss');url.searchParams.set('mkt',lang==='de'?'de-DE':'en-US');}
+      else url.searchParams.set('kl',lang==='de'?'de-de':'us-en');
+      return parse((await fetchText(url.href)).text);
+    }));
+    answers.forEach((answer,i)=>{if(answer.status==='fulfilled')rows.push(...answer.value);else errors.push(engines[i][0]+': '+answer.reason.message);});
+    return {rows,errors};
+  }));
+  const fulfilled=responses.filter(r=>r.status==='fulfilled').map(r=>r.value);
+  const results=rankResults(fulfilled.flatMap(r=>r.rows),query,{source,manufacturer}).filter(r=>!domains.length||domains.some(d=>domainMatches(new URL(r.url).hostname,d)));
+  const warnings=results.length?[]:['Die Websuche hat keine ausreichend passenden Treffer geliefert. Versuche die genaue Modellnummer oder einen direkten Hersteller-/Geizhals-Link.',...new Set(fulfilled.flatMap(r=>r.errors))];
+  return {results,warnings};
 }
 export function extractLaptopLinks(html,base,query){
   const rows=[];

@@ -6,7 +6,7 @@ import {root} from './helper.mjs';
 import path from 'node:path';
 const results=[];
 for(const query of ['iPhone 17 Pro','Steam Deck','Apple Watch Series 10']) {
-  const search=await searchOnline(query,'en',{source:'wikipedia'});assert.ok(search.results.length>0);
+  const search=await searchOnline(query,'en',{source:'manufacturer'});assert.ok(search.results.length>0);
   const first=search.results[0];const data=await retrieveOnline(first.url);validateStore({version:1,devices:[data.device],trades:[]});
   results.push(data.device);console.log(JSON.stringify({query,result:first.title,category:data.device.category,brand:data.device.brand,specs:data.device.specs.length,sample:data.device.specs.slice(0,6)}));
 }

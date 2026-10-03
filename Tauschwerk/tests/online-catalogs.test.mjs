@@ -8,7 +8,7 @@ import {validateStore} from '../core.mjs';
 
 test('Automatische Quellen richten sich nach dem Gerät, auch ohne Laptop',async()=>{
   const seen=[];
-  const fetcher=async input=>{const u=new URL(input);seen.push(u);if(u.hostname==='nanoreview.net')return {text:JSON.stringify([{content_type:'phone',slug:'apple-iphone-17-pro',label:'Apple iPhone 17 Pro'},{content_type:'phone',slug:'apple-iphone-16-pro',label:'Apple iPhone 16 Pro'},{content_type:'phone',slug:'../../bad',label:'Apple iPhone 17 Pro'}])};if(u.hostname.includes('wikipedia'))return {text:'{"query":{"search":[]}}'};return {text:'<html></html>'};};
+  const fetcher=async input=>{const u=new URL(input);seen.push(u);if(u.hostname==='nanoreview.net')return {text:JSON.stringify([{content_type:'phone',slug:'apple-iphone-17-pro',label:'Apple iPhone 17 Pro'},{content_type:'phone',slug:'apple-iphone-16-pro',label:'Apple iPhone 16 Pro'},{content_type:'phone',slug:'../../bad',label:'Apple iPhone 17 Pro'}])};return {text:'<html></html>'};};
   const answer=await searchOnline('iPhone 17 Pro','en',{},fetcher);
   assert.equal(answer.kind,'phones');assert.equal(answer.results.length,1);assert.equal(answer.results[0].sourceName,'NanoReview');assert.ok(seen.some(u=>u.pathname==='/api/search'));assert.ok(!seen.some(u=>u.hostname==='laptopmedia.com'));assert.ok(answer.searchedSources.includes('NanoReview'));
   assert.equal(detectDeviceKind('Apple Watch Series 12'),'watches');assert.equal(detectDeviceKind('Ryzen 7 9800X3D'),'cpu');assert.equal(detectDeviceKind('ASUS ROG Ally'),'consoles');assert.equal(detectDeviceKind('Canon EOS R5'),'cameras');

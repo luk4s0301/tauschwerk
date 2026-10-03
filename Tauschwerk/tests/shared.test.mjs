@@ -41,9 +41,10 @@ test('Gemeinsamer Server: Anmeldung über Ingress, zwei Geräte, Konflikte und N
     assert.equal((await fetch(s.base+'/api/online/device?url=https://127.0.0.1',{headers:{'X-Tauschwerk-Mode':'online'}})).status,502);
     await s.stop();s=await launchIngress(dir);const restored=await (await get()).json();assert.equal(restored.devices[1].value,999);assert.equal(restored.savedComparisons[0].devices[1].value,null);
     await s.stop();
-    fs.writeFileSync(path.join(dir,'online-cache.json'),JSON.stringify([{url:'https://example.com/specs',time:Date.now(),device:restored.devices[0],imageVersion:2}]));
+    fs.writeFileSync(path.join(dir,'online-cache.json'),JSON.stringify([{url:'https://example.com/specs',time:Date.now(),device:restored.devices[0],imageVersion:2},{url:'https://en.wikipedia.org/wiki/Test',time:Date.now(),device:restored.devices[0],imageVersion:2}]));
     s=await launchIngress(dir);
     const cached=await (await fetch(s.base+'/api/online/device?url=https://example.com/specs',{headers:{'X-Tauschwerk-Mode':'online'}})).json();
+    assert.equal((await fetch(s.base+'/api/online/device?url=https://en.wikipedia.org/wiki/Test',{headers:{'X-Tauschwerk-Mode':'online'}})).status,502);
     assert.equal(cached.cached,true);assert.equal(cached.device.name,restored.devices[0].name);
     const bad=structuredClone(restored);bad.savedComparisons[0].devices[0].name='';assert.throws(()=>validateStore(bad));
   }finally{await s.stop();}

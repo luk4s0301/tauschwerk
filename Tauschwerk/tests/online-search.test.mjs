@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {classifySource} from '../online-sources.mjs';
 import {parseBingRSS,parseDuckDuckGo,rankResults,extractLaptopLinks,readLaptopConfiguration,searchWeb} from '../online-search.mjs';
-import {searchOnline} from '../online.mjs';
+import {searchOnline,retrieveOnline} from '../online.mjs';
 import {extractDevice} from '../online-parser.mjs';
 import {validateStore} from '../core.mjs';
 
@@ -31,13 +31,13 @@ test('Websuche fällt bei gesperrtem Erst-Anbieter auf Bing zurück',async()=>{
 });
 test('Ausfall einzelner Quellen erhält Ergebnisse der anderen Quellen',async()=>{
   const answer=await searchOnline('ASUS Zenbook 14 UX3405','all',{},async url=>{
-    if(url.includes('wikipedia'))throw new Error('Test: Wikipedia nicht erreichbar');
+    assert.ok(!new URL(url).hostname.includes('wikipedia'));
     if(url.includes('duckduckgo'))throw new Error('Test: Sperrseite');
     if(url.includes('bing.com'))return {text:rss([['ASUS Zenbook 14 UX3405','https://asus.com/zenbook-14-ux3405']])};
     if(url.includes('wp-json'))return {text:JSON.stringify([{title:'ASUS Zenbook 14 UX3405 review',url:'https://laptopmedia.com/review/asus-zenbook-14-ux3405/'}])};
     return {text:'<a href="/laptop-specs/asus-zenbook-14-123/">ASUS Zenbook 14 OLED</a><a href="/laptop-specs/dell-xps-13/">Dell XPS 13</a>'};
   });
-  assert.ok(answer.results.some(r=>r.provider==='manufacturer'));assert.ok(answer.results.some(r=>r.sourceName==='LaptopMedia'));assert.ok(answer.warnings.some(w=>w.includes('Wikipedia')));assert.ok(!answer.results.some(r=>r.title==='Dell XPS 13'));
+  assert.ok(answer.results.some(r=>r.provider==='manufacturer'));assert.ok(answer.results.some(r=>r.sourceName==='LaptopMedia'));assert.ok(!answer.warnings.some(w=>w.includes('Wikipedia')));assert.ok(!answer.results.some(r=>r.title==='Dell XPS 13'));
   await assert.rejects(()=>searchOnline('ASUS','all',{source:'unknown'}),/Ungültige Suchquelle/);
 });
 test('Verlinkte Laptop-Konfigurationen schließen fremde Geräte aus',()=>{
@@ -54,4 +54,39 @@ test('Konfiguration einer anderen Generation wird trotz gleichem Familiennamen a
   const html='<title>ASUS Zenbook 14 OLED · 16GB RAM</title><a href="/series/asus-zenbook-14-ux3407/">ASUS Zenbook 14 (UX3407)</a><a href="/series/asus-zenbook-14-ux3405/">Empfehlung: ASUS Zenbook 14 (UX3405)</a>';
   assert.equal(readLaptopConfiguration(html,'https://laptopmedia.com/laptop-specs/asus-zenbook-14-141/','ASUS Zenbook 14 UX3405'),null);
   assert.ok(readLaptopConfiguration(html,'https://laptopmedia.com/laptop-specs/asus-zenbook-14-141/','ASUS Zenbook 14 UX3407'));
+});
+
+test('Unbekannte Marken und Geräte werden im WWW in beiden Sprachen gefunden',async()=>{
+  const requests=[];
+  const answer=await searchOnline('Acme Sensor QZ900','all',{},async input=>{
+    const u=new URL(input);requests.push(u);
+    if(u.hostname.includes('duckduckgo'))return {text:'<a class="result__a" href="https://acme.example/products/qz900">Acme Sensor QZ900</a>'};
+    return {text:rss([['Acme Sensor QZ900 technische Daten','https://geizhals.de/acme-sensor-qz900-a123.html'],['Acme Sensor QZ900','https://en.wikipedia.org/wiki/Acme_Sensor_QZ900']])};
+  });
+  assert.ok(answer.results.some(r=>r.host==='acme.example'));
+  assert.equal(answer.results[0].sourceName,'Geizhals');
+  assert.ok(requests.some(u=>u.searchParams.get('q').includes('technische Daten')));
+  assert.ok(requests.some(u=>u.searchParams.get('q').includes('specifications')));
+  assert.ok(requests.some(u=>u.searchParams.get('q').includes('site:geizhals.de')));
+  assert.ok(!answer.results.some(r=>r.url.includes('wikipedia')));
+});
+test('Wikipedia ist auch über Direktimport und alte Quellenfilter ausgeschlossen',async()=>{
+  for(const host of ['de.wikipedia.org','fr.wikipedia.org','www.wikidata.org','upload.wikimedia.org']){
+    assert.throws(()=>extractDevice('<h1>Test</h1><dl><dt>RAM</dt><dd>8 GB</dd></dl>','https://'+host+'/test'),/ausgeschlossen/);
+    await assert.rejects(()=>retrieveOnline('https://'+host+'/test'),/ausgeschlossen/);
+    assert.deepEqual(parseBingRSS(rss([['Test','https://'+host+'/test']])),[]);
+  }
+  await assert.rejects(()=>searchOnline('Test','all',{source:'wikipedia'}),/Ungültige Suchquelle/);
+});
+test('Beide Suchanbieter tragen Treffer bei, auch wenn der erste erfolgreich ist',async()=>{
+  const answer=await searchWeb('Samsung Galaxy S25','en',{},async input=>{
+    if(input.includes('duckduckgo'))return {text:'<a class="result__a" href="https://example.com/galaxy-s25">Samsung Galaxy S25</a>'};
+    return {text:rss([['Samsung Galaxy S25','https://samsung.com/galaxy-s25/']])};
+  });
+  assert.equal(answer.results[0].provider,'manufacturer');
+  assert.ok(answer.results.some(r=>r.host==='example.com'));
+});
+test('Geizhals übernimmt technische Definitionen und keinen Händlerpreis als Gerätewert',()=>{
+  const d=extractDevice('<h1>Acme Sensor QZ900</h1><dl><dt>Messbereich</dt><dd>0–100 °C</dd><dt>RAM</dt><dd>8 GB</dd></dl>','https://geizhals.de/acme-qz900-a123.html',{provider:'geizhals'});
+  assert.equal(d.specs.find(s=>s.key==='Messbereich').value,'0–100 °C');assert.equal(d.value,null);
 });

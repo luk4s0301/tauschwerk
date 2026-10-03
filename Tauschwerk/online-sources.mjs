@@ -52,6 +52,7 @@ export const manufacturers = [
 ];
 export const deviceKinds=[['all','Automatisch / alle Geräte'],['phones','Handys & Tablets'],['laptops','Laptops & Computer'],['cpu','Prozessoren'],['gpu','Grafikkarten'],['consoles','Konsolen & Gaming'],['watches','Uhren & Wearables'],['tv','Fernseher & Monitore'],['audio','Audio & Kopfhörer'],['cameras','Kameras & Drohnen'],['peripherals','PC-Zubehör & Speicher'],['home','Haushalt & Smart Home'],['other','Andere Geräte']];
 export const specialistSources=[
+  {id:'geizhals',name:'Geizhals',domains:['geizhals.de','geizhals.at','geizhals.eu'],kinds:deviceKinds.map(([id])=>id)},
   {id:'nanoreview',name:'NanoReview',domains:['nanoreview.net'],kinds:['phones']},
   {id:'gsmarena',name:'GSMArena',domains:['gsmarena.com'],kinds:['phones','watches']},
   {id:'cpu-monkey',name:'CPU-Monkey',domains:['cpu-monkey.com'],kinds:['cpu']},
@@ -62,7 +63,7 @@ export const specialistSources=[
 ];
 export const sourceOptions = [
   ['all','Alle passenden Quellen'],['manufacturer','Herstellerseiten'],['web','Websuche'],
-  ...specialistSources.map(s=>[s.id,s.name]),['wikipedia','Wikipedia']
+  ...specialistSources.map(s=>[s.id,s.name])
 ];
 const databases=[...specialistSources.flatMap(s=>s.domains.map(d=>[d,s.name])),['notebookcheck.net','Notebookcheck'],['notebookcheck.com','Notebookcheck'],['devicespecifications.com','DeviceSpecifications']];
 export function domainMatches(host,domain){return host===domain||host.endsWith('.'+domain);}
@@ -70,7 +71,6 @@ export function classifySource(input){
   let host;try{host=new URL(input).hostname.toLowerCase();}catch{return {kind:'website',name:'Webquelle',host:''};}
   const maker=manufacturers.find(m=>m.domains.some(d=>domainMatches(host,d)));
   if(maker)return {kind:'manufacturer',name:maker.name,manufacturer:maker.id,host};
-  if(domainMatches(host,'wikipedia.org'))return {kind:'wikipedia',name:'Wikipedia',host};
   const database=databases.find(([domain])=>domainMatches(host,domain));
   return {kind:database?'database':'website',name:database?.[1] || host.replace(/^www\./,''),host};
 }
@@ -92,4 +92,8 @@ export function detectDeviceKind(query){
   if(/ssd|hdd|keyboard|tastatur|maus|mouse|router|mainboard|motherboard|kingston|crucial|seagate/.test(t))return 'peripherals';
   if(/dyson|roborock|staubsauger|vacuum|waschmaschine|kaffeemaschine|smart home/.test(t))return 'home';
   return 'other';
+}
+
+export function isExcludedSource(input){
+  try{const host=new URL(input).hostname.toLowerCase();return ['wikipedia.org','wikimedia.org','wikidata.org'].some(d=>domainMatches(host,d));}catch{return false;}
 }

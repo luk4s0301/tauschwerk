@@ -27,9 +27,9 @@ test('Keine Logos, Chipsymbole, internen Schemas oder Bilder fremder Modelle',()
   const bad='<title>Galaxy S25 Ultra</title><meta property="og:image" content="/ultra.png"><img alt="Galaxy S25" src="javascript:alert(1)"><img alt="Galaxy S25" src="/logo.png"><img alt="Galaxy S25" src="/icon_chip.png"><nav><img alt="Galaxy S25" src="/navigation.png"></nav><img src="/galaxy-s25/specs/unrelated-photo.png"><img alt="Galaxy S25" src="/site/localnav/duo.png">';
   assert.deepEqual(extractImageCandidates(bad,source,{name}),[]);
 });
-test('Wikipedia nimmt das Infobox-Produktbild statt Navigationsgrafiken',()=>{
+test('Ausgeschlossene Quellen liefern auch keine Produktbilder',()=>{
   const doc='<title>PlayStation 5 - Wikipedia</title><img src="/navigation.png"><table class="infobox"><tr><td><img src="//upload.wikimedia.org/model.png" width="250"></td></tr></table>';
-  assert.equal(extractImageCandidates(doc,'https://en.wikipedia.org/wiki/PlayStation_5',{name:'PlayStation 5',provider:'wikipedia'})[0].url,'https://upload.wikimedia.org/model.png');
+  assert.deepEqual(extractImageCandidates(doc,'https://en.wikipedia.org/wiki/PlayStation_5',{name:'PlayStation 5',provider:'wikipedia'}),[]);
 });
 test('Bilddownload speichert Binärdaten mit Quelle offline; erster Fehler erlaubt Fallback',async()=>{
   const doc=html+'<img alt="Samsung Galaxy S25" src="/second.png">';let requests=0;

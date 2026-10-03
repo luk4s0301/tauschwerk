@@ -6,10 +6,10 @@ import {parsePrice,validateStore} from '../core.mjs';
 test('Deutsche Preise einschließlich Tausendertrennzeichen',()=>{
   assert.equal(parsePrice('1.500,50 €'),1500.5);assert.equal(parsePrice('1500,50'),1500.5);assert.equal(parsePrice('1500.50'),1500.5);assert.equal(parsePrice(''),null);assert.equal(parsePrice('0'),0);assert.ok(Number.isNaN(parsePrice('1,2,3')));assert.ok(Number.isNaN(parsePrice('-50')));
 });
-test('Wikipedia-Infobox liefert Merkmale, Einheiten, Quelle und Attribution',()=>{
+test('Produkt-Datenblatt liefert Merkmale, Einheiten, Quelle und Attribution',()=>{
   const html='<h1>Test Phone</h1><table class="infobox"><tbody><tr><th>Manufacturer</th><td>Testbrand</td></tr><tr><th>Display</th><td>6.1&quot; OLED<sup>[1]</sup></td></tr><tr><th>RAM</th><td>8&nbsp;GB</td></tr><tr><th>Storage</th><td>128 GB<br>256 GB</td></tr></tbody></table>';
-  const d=extractDevice(html,'https://en.wikipedia.org/wiki/Test_Phone',{title:'Test Phone',provider:'wikipedia'});
-  validateStore({version:1,devices:[d],trades:[]});assert.equal(d.brand,'Testbrand');assert.equal(d.specs.find(s=>s.key==='Arbeitsspeicher').value,'8 GB');assert.equal(d.specs.find(s=>s.key==='Display').value,'6.1" OLED');assert.ok(d.provenance.attribution.includes('CC BY-SA'));assert.equal(d.value,null);
+  const d=extractDevice(html,'https://example.com/test-phone',{title:'Test Phone',provider:'manufacturer'});
+  validateStore({version:1,devices:[d],trades:[]});assert.equal(d.brand,'Testbrand');assert.equal(d.specs.find(s=>s.key==='Arbeitsspeicher').value,'8 GB');assert.equal(d.specs.find(s=>s.key==='Display').value,'6.1" OLED');assert.ok(d.provenance.attribution.includes('Quelle:'));assert.equal(d.value,null);
 });
 test('JSON-LD Produktdaten werden ohne Händlerpreis als Gerätewert übernommen',()=>{
   const json={'@context':'https://schema.org','@graph':[{'@type':'Product',name:'GPU X',brand:{name:'Example'},additionalProperty:[{'@type':'PropertyValue',name:'memory',value:16,unitText:'GB'}],offers:{price:'999',priceCurrency:'EUR'}}]};

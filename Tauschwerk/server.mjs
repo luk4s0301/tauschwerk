@@ -4,7 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { validateStore } from './core.mjs';
-import { searchOnline, retrieveOnline, findDeviceImage } from './online.mjs';
+import { searchOnline, retrieveOnline, findDeviceImage, validateRemoteURL } from './online.mjs';
 import { isIngressRequest, ingressBase } from './server-policy.mjs';
 import {valueSet} from './market-value.mjs';
 
@@ -55,13 +55,13 @@ const server = http.createServer(async (req,res) => {
   const url = new URL(req.url, origin);
   const authenticated = shared || (req.headers.cookie || '').split(';').some(c=>c.trim()===`tw_session=${token}`);
   const send = (code,payload,headers={}) => {res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(payload));};
-  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.6.0'});
+  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.6.1'});
   if (!shared && url.pathname === '/' && url.searchParams.get('token') === token) {
     res.writeHead(302,{'Set-Cookie':`tw_session=${token}; HttpOnly; SameSite=Strict; Path=/`,'Location':'/','Cache-Control':'no-store'});return res.end();
   }
   if (!authenticated) return send(401,{error:'Bitte Tauschwerk.exe starten.'});
   lastSeen = Date.now();
-  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.6.0'});
+  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.6.1'});
   if (url.pathname === '/api/store' && req.method === 'GET') {const data=structuredClone(store);if(shared)delete data.ui;return send(200,data,{ETag:revision});}
   if (url.pathname === '/api/ping' && req.method === 'POST') return send(200,{ok:true});
   if(url.pathname==='/api/online/valuation'&&req.method==='POST'){
@@ -74,7 +74,7 @@ const server = http.createServer(async (req,res) => {
     try {
       if (url.pathname === '/api/online/search') return send(200,await searchOnline(url.searchParams.get('q'),url.searchParams.get('language') || 'all',{source:url.searchParams.get('source') || 'all',manufacturer:url.searchParams.get('manufacturer') || 'all',kind:url.searchParams.get('kind') || 'all'}));
       if (url.pathname === '/api/online/device') {
-        const source=url.searchParams.get('url');
+        const source=validateRemoteURL(url.searchParams.get('url')).href;
         const cached=shared&&onlineCache.find(e=>e.url===source&&Date.now()-e.time<86400000);
         if(cached?.imageVersion===2)return send(200,{device:cached.device,warnings:['Aus dem gemeinsamen Zwischenspeicher (maximal 24 Stunden).'],cached:true});
         const result=await retrieveOnline(source);

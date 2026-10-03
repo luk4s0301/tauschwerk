@@ -1,4 +1,5 @@
 // Parses fetched documents as data. No website scripts are executed.
+import {isExcludedSource} from './online-sources.mjs';
 import crypto from 'node:crypto';
 
 export function decodeEntities(s) {
@@ -106,10 +107,11 @@ export function imageModelMatches(requested,candidate) {
   return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t))&&gpuExact&&(!wanted.some(t=>['geforce','radeon'].includes(t))||gpuVendors.every(t=>!actual.includes(t)||wanted.includes(t)));
 }
 export function extractImageCandidates(html,url,{name,provider='website'}={}) {
+  if(isExcludedSource(url)||provider==='wikipedia')return [];
   const tree=parseTree(html),candidates=[];
   const add=(value,alt='',score=0)=>{
     if(!value||/logo|favicon|sprite|banner|badge|chart|benchmark|graph|tracking|localnav|icon[_-]|size_and_weight|diagram|pixel\.gif|\.svg(?:\?|$)/i.test(value+' '+alt))return;
-    let imageURL;try{imageURL=new URL(value,url);if(imageURL.protocol!=='https:'||imageURL.username||imageURL.password)return;}catch{return;}
+    let imageURL;try{imageURL=new URL(value,url);if(isExcludedSource(imageURL.href)||imageURL.protocol!=='https:'||imageURL.username||imageURL.password)return;}catch{return;}
     if(!candidates.some(c=>c.url===imageURL.href))candidates.push({url:imageURL.href,alt:alt||name,score});
   };
   for(const script of html.matchAll(/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
@@ -117,20 +119,20 @@ export function extractImageCandidates(html,url,{name,provider='website'}={}) {
   }
   const metas=[...descendants(tree,'meta')];
   const meta=key=>attr(metas.find(n=>attr(n,'property')===key||attr(n,'name')===key)||{},'content');
-  const pageName=meta('og:title')||textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'')||cleanNode([...descendants(tree,'h1')][0]||{children:[]})||(provider==='wikipedia'?decodeURIComponent(new URL(url).pathname.split('/').at(-1)).replaceAll('_',' '):'');
+  const pageName=meta('og:title')||textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'')||cleanNode([...descendants(tree,'h1')][0]||{children:[]});
   const pageMatches=imageModelMatches(name,pageName);
   for(const img of descendants(tree,'img')){
     if(ancestor(img,'nav')||ancestor(img,'footer'))continue;
     const alt=attr(img,'alt');const src=attr(img,'data-src')||attr(img,'src');
-    const isInfobox=provider==='wikipedia'&&/infobox/i.test(attr(ancestor(img,'table')||{},'class'));
     const isModel=imageModelMatches(name,alt)||imageModelMatches(name,src.split('/').at(-1));
-    if(isModel||isInfobox&&pageMatches){const width=Number(attr(img,'width')),height=Number(attr(img,'height'));if(width&&width<60||height&&height<60)continue;add(src,alt,isModel?90:70);}
+    if(isModel){const width=Number(attr(img,'width')),height=Number(attr(img,'height'));if(width&&width<60||height&&height<60)continue;add(src,alt,90);}
   }
   if(pageMatches){add(meta('og:image:secure_url')||meta('og:image'),meta('og:image:alt')||name,80);add(meta('twitter:image'),meta('twitter:image:alt')||name,75);}
   return candidates.sort((a,b)=>b.score-a.score).slice(0,8);
 }
 
 export function extractDevice(html,url,{title='',provider='website',description=''}={}) {
+  if(isExcludedSource(url)||provider==='wikipedia')throw new Error('Diese Quelle ist ausgeschlossen. Nutze eine Herstellerseite, Geizhals oder eine Fachquelle.');
   const specs=[];const add=(key,value)=>{key=canonicalKey(key).slice(0,100);value=textOnly(value).slice(0,2000);if(!key||!value||key.length>100||/^(?:edit|bearbeiten|references|einzelnachweise|contents|inhalt|navigation|privacy|datenschutz)$/i.test(key))return;const existing=specs.find(s=>s.key.toLowerCase()===key.toLowerCase());if(existing){if(existing.value!==value&&!existing.value.includes(value)&&existing.value.length+value.length<2000)existing.value+=' / '+value;}else if(specs.length<100)specs.push({key,value,source:url});};
   let product;
   for(const script of html.matchAll(/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
@@ -143,7 +145,7 @@ export function extractDevice(html,url,{title='',provider='website',description=
     for(const [key,label] of Object.entries({model:'Modell',weight:'Gewicht',height:'Höhe',width:'Breite',depth:'Tiefe',color:'Farbe',sku:'Modellnummer',gtin13:'EAN',material:'Material'}))if(product[key]!==undefined)add(label,schemaValue(product[key]));
   }
   const tree=parseTree(html);
-  if(provider!=='wikipedia'){
+  {
     // Definition lists used by manufacturer support and specification pages.
     for(const dl of descendants(tree,'dl')){
       if(provider==='gpu-monkey'&&/\bkpis\b/.test(attr(dl,'class')))continue;
@@ -151,7 +153,7 @@ export function extractDevice(html,url,{title='',provider='website',description=
         if(ancestor(dt,'dl')!==dl)continue;
         const siblings=dt.parent.children;const dd=siblings.slice(siblings.indexOf(dt)+1).find(n=>n.tag==='dd'||n.tag==='dt');
         const label=cleanNode(dt);
-        if(dd?.tag==='dd'&&label.length<=100&&(aliases.has(label.toLowerCase().replace(/:$/,''))||provider==='gpu-monkey'))add(provider==='gpu-monkey'&&label==='Memory'?'Grafikspeicher':label,cleanNode(dd));
+        if(dd?.tag==='dd'&&label.length<=100&&(aliases.has(label.toLowerCase().replace(/:$/,''))||['gpu-monkey','geizhals'].includes(provider)))add(provider==='gpu-monkey'&&label==='Memory'?'Grafikspeicher':label,cleanNode(dd));
       }
     }
   }
@@ -163,7 +165,7 @@ export function extractDevice(html,url,{title='',provider='website',description=
     if(pageTitle)title=pageTitle;
   }
   const tables=[...descendants(tree,'table')];const info=tables.filter(t=>/infobox|infotable|hintergrundfarbe5/i.test(attr(t,'class')));
-  const candidates=provider==='wikipedia'?info:(info.length?info:tables);
+  const candidates=info.length?info:tables;
   const nanoSections=provider==='nanoreview'?[...html.matchAll(/<table\b[^>]*class=["'][^"']*specs-table[^"']*["'][^>]*>/gi)].map(m=>{const before=html.slice(0,m.index);return textOnly([...before.matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)].at(-1)?.[1]||'');}):[];
   let nanoIndex=0;
   for(const table of candidates){
@@ -182,7 +184,7 @@ export function extractDevice(html,url,{title='',provider='website',description=
     add(cleanNode(cells[0]),cleanNode(cells[1]));
   }
   // Public manufacturer support pages often use headings and lists rather than tables.
-  if(!['wikipedia','nanoreview','gpu-monkey','cpu-monkey'].includes(provider)) {
+  if(!['nanoreview','gpu-monkey','cpu-monkey'].includes(provider)) {
     const headings=[...html.matchAll(/<h([234])\b[^>]*>([\s\S]*?)<\/h\1>/gi)];
     for(let i=0;i<headings.length;i++){
       const m=headings[i],key=canonicalKey(m[2]);
@@ -193,12 +195,12 @@ export function extractDevice(html,url,{title='',provider='website',description=
   }
   const pageTitle=textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '');
   if(accessibleTable){const productName=specs.find(s=>s.key==='Produktname')?.value;if(productName&&/technische spezifikationen|technical specifications/i.test(pageTitle))title=productName;}
-  title=textOnly(title || (provider==='manufacturer'?pageTitle:'') || cleanNode([...descendants(tree,'h1')][0] || {children:[]}) || pageTitle).replace(/\s*[–|]\s*(?:Wikipedia|Apple Support).*$/i,'').replace(/\s*;?\s*(?:Benchmarks?\s*(?:&|and)\s*Specs|Benchmark and Specs).*$/i,'').slice(0,300);
+  title=textOnly(title || (provider==='manufacturer'?pageTitle:'') || cleanNode([...descendants(tree,'h1')][0] || {children:[]}) || pageTitle).replace(/\s*[–|]\s*Apple Support.*$/i,'').replace(/\s*;?\s*(?:Benchmarks?\s*(?:&|and)\s*Specs|Benchmark and Specs).*$/i,'').slice(0,300);
   if(!title)throw new Error('Auf dieser Seite wurde kein Gerätename gefunden. Versuche ein direktes Datenblatt.');
   if(!specs.length)throw new Error('Die Seite liefert keine auslesbaren technischen Merkmale. Versuche eine andere Quelle oder ergänze das Gerät manuell.');
   const brand=guessBrand(title,specs),category=guessCategory(title,description,specs,url);
   const retrievedAt=new Date().toISOString();
   return {id:'web-'+crypto.createHash('sha256').update(url).digest('hex').slice(0,20),name:title,brand,category,source:url,sourceType:provider,
     specs,notes:description?description+'\n\nAutomatisch aus der verlinkten Quelle übernommen. Modell und Varianten vor einem Tausch prüfen.':'Automatisch aus der verlinkten Quelle übernommen. Modell und Varianten prüfen.',value:null,offers:[],checked:retrievedAt.slice(0,10),
-    provenance:{provider,retrievedAt,attribution:provider==='wikipedia'?'Wikipedia-Mitwirkende, CC BY-SA; siehe Quelle und Versionsgeschichte.':'Quelle: '+new URL(url).hostname,needsReview:true}};
+    provenance:{provider,retrievedAt,attribution:'Quelle: '+new URL(url).hostname,needsReview:true}};
 }

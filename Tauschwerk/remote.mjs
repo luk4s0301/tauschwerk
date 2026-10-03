@@ -1,3 +1,4 @@
+import {isExcludedSource} from './online-sources.mjs';
 import https from 'node:https';
 import dns from 'node:dns/promises';
 import net from 'node:net';
@@ -12,6 +13,7 @@ export function isPublicAddress(address) {
 export function validateRemoteURL(input) {
   let url;try{url=new URL(input);}catch{throw new Error('Bitte einen vollständigen https://-Link eingeben.');}
   if(url.protocol!=='https:'||url.username||url.password||(url.port&&url.port!=='443'))throw new Error('Nur öffentliche HTTPS-Seiten ohne Zugangsdaten werden unterstützt.');
+  if(isExcludedSource(url.href))throw new Error('Diese Quelle ist ausgeschlossen. Nutze eine Herstellerseite, Geizhals oder eine Fachquelle.');
   const host=url.hostname.replace(/^\[|\]$/g,'');
   if((net.isIP(host)&&!isPublicAddress(host))||(!net.isIP(host)&&(!host.includes('.')||/\.(?:local|localhost|internal|home|test|invalid)$/i.test(host))))throw new Error('Lokale und interne Adressen sind keine Online-Quellen.');
   url.hash='';return url;

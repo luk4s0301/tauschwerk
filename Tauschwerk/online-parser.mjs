@@ -156,7 +156,13 @@ export function extractDevice(html,url,{title='',provider='website',description=
   };
   const tree=parseTree(html);
   const visibleTitle=cleanNode([...descendants(tree,'h1')].find(n=>!ancestor(n,'nav'))||{children:[]});
-  const wanted=title||visibleTitle;
+  const pageTitle=textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '');
+  const nintendo=classifySource(url).manufacturer==='nintendo';
+  const genericTitle=s=>/^(?:hardware|technical specifications|tech specs|specifications|technische (?:daten|spezifikationen)|produktinformationen|nintendo switch(?: family| familie))$/i.test(s.trim());
+  // A generic heading such as “Technische Daten” must not replace the actual
+  // hardware identity in the document title. Never use the search text as data.
+  const nintendoTitle=nintendo?((!genericTitle(visibleTitle)&&/nintendo\s+switch|\bswitch\s*2\b/i.test(visibleTitle)?visibleTitle:'')||(/nintendo\s+switch/i.test(pageTitle)?pageTitle:'')):'';
+  const wanted=title||nintendoTitle||(!genericTitle(visibleTitle)?visibleTitle:'');
   const related=node=>{let n=node;while(n){if(['nav','footer','aside'].includes(n.tag)||/(?:^|[\s_-])(?:related|recommendations?|recommended|accessories|compare|comparison|navigation)(?:$|[\s_-])/i.test(attr(n,'class')+' '+attr(n,'id')))return true;n=n.parent;}return false;};
   let product;
   for(const script of html.matchAll(/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
@@ -202,15 +208,19 @@ export function extractDevice(html,url,{title='',provider='website',description=
   for(const row of [...descendants(tree,'div'),...descendants(tree,'li')]){
     if(attr(row,'role')!=='row'||related(row))continue;
     const cells=(row.children||[]).filter(n=>['cell','rowheader','columnheader'].includes(attr(n,'role')));
-    let container=row.parent;while(container&&!attr(container,'role').split(/\s+/).includes('table'))container=container.parent;
+    let container=row.parent;while(container&&!attr(container,'role').split(/\s+/).some(role=>['table','grid'].includes(role)))container=container.parent;
     if(cells.length!==2||!container)continue;
     accessibleTable||=container;if(container!==accessibleTable)continue;
     add(cleanNode(cells[0]),cleanNode(cells[1]));
   }
-  // Nintendo's European hardware sheets use table-row/table-column divs.
-  if(classifySource(url).manufacturer==='nintendo')for(const row of descendants(tree,'div')){
-    if(related(row)||!/(?:^|\s)(?:table[-_]row|specs?[-_]row)(?:\s|$)/i.test(attr(row,'class')))continue;
-    const cells=(row.children||[]).filter(n=>n.tag!=='#text');if(cells.length===2)add(cleanNode(cells[0]),cleanNode(cells[1]));
+  // Nintendo's older European sheets and newer US pages use different row
+  // classes, including hashed CSS. Read explicit pairs of technical labels.
+  if(nintendo)for(const row of descendants(tree,'div')){
+    if(related(row)||ancestor(row,'table')||ancestor(row,'dl'))continue;
+    const cells=(row.children||[]).filter(n=>n.tag!=='#text');if(cells.length!==2)continue;
+    const key=cleanNode(cells[0]).replace(/[:\s]+$/,'');
+    const namedRow=/(?:table|specs?|specifications)[\w-]*(?:__|[-_])row(?:\s|$)/i.test(attr(row,'class'));
+    if(namedRow||aliases.has(key.toLowerCase())||/^(?:produktname|product name)$/i.test(key))add(key,cleanNode(cells[1]));
   }
   // Samsung and other manufacturer pages use labelled spec blocks, not HTML tables.
   for(const tag of ['li','div'])for(const row of descendants(tree,tag)){
@@ -233,9 +243,10 @@ export function extractDevice(html,url,{title='',provider='website',description=
       const clean=textOnly(section);if(clean&&clean.length<=2000&&!/<table|<dl|spec.*(?:title|label)/i.test(section)&&!specs.some(s=>s.key===key))add(key,clean);
     }
   }
-  const pageTitle=textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '');
-  if(accessibleTable){const productName=specs.find(s=>s.key==='Produktname')?.value;if(productName&&/technische spezifikationen|technical specifications/i.test(pageTitle))title=productName;}
-  title=textOnly(title || visibleTitle || pageTitle).replace(/\s*[–|]\s*Apple Support.*$/i,'').replace(/\s*;?\s*(?:Benchmarks?\s*(?:&|and)\s*Specs|Benchmark and Specs).*$/i,'').slice(0,300);
+  if(accessibleTable||nintendo){const productName=specs.find(s=>/^(?:Produktname|Product name)$/i.test(s.key))?.value;if(productName&&(genericTitle(visibleTitle)||/technische spezifikationen|technical specifications/i.test(pageTitle)))title=productName;}
+  title=textOnly(title || nintendoTitle || visibleTitle || pageTitle).replace(/\s*[–|]\s*Apple Support.*$/i,'').replace(/\s*;?\s*(?:Benchmarks?\s*(?:&|and)\s*Specs|Benchmark and Specs).*$/i,'');
+  if(nintendo)title=title.replace(/\s*(?:[–—|]| - )\s*(?:technical specifications|tech specs|specifications|technische daten|technische spezifikationen|nintendo (?:official|of europe)|nintendo\.com).*$/i,'').replace(/\s*\|\s*Nintendo.*$/i,'');
+  title=title.slice(0,300);
   if(!title)throw new Error('Auf dieser Seite wurde kein Gerätename gefunden. Versuche ein direktes Datenblatt.');
   if(!specs.some(s=>!['Hersteller','Marke','Modell','Modellnummer','EAN','Farbe','Website','Veröffentlichung'].includes(s.key)))throw new Error('Die Seite liefert keine auslesbaren technischen Merkmale. Versuche eine andere Quelle oder ergänze das Gerät manuell.');
   const brand=guessBrand(title,specs),category=guessCategory(title,description,specs,url);

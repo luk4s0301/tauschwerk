@@ -44,27 +44,40 @@ function specificationLinks(doc){
   }
   return [...new Set(links)].slice(0,4);
 }
+function nintendoSpecificationURLs(model){
+  const name=normalizeDeviceQuery(model).toLowerCase();
+  if(!/^nintendo switch(?: 2| oled(?: model)?| lite)?$/.test(name))return [];
+  if(name.endsWith(' 2'))return ['https://www.nintendo.com/us/gaming-systems/switch-2/tech-specs/'];
+  if(name.includes('oled'))return ['https://www.nintendo.com/us/gaming-systems/switch/oled-model/tech-specs/'];
+  if(name.endsWith(' lite'))return ['https://www.nintendo.com/us/gaming-systems/switch/lite/tech-specs/'];
+  return ['https://www.nintendo.com/us/gaming-systems/switch/tech-specs/','https://www.nintendo.com/en-gb/Hardware/Nintendo-Switch-Family/Nintendo-Switch/Technical-specifications-1176277.html'];
+}
 export async function retrieveOnline(input,{expectedModel='',fallback=false,enrichImages=false,fetchImage=fetchPublicImage}={},fetchText=fetchPublicText) {
   // Validate before recovery: an excluded or private URL must never trigger a search.
   input=validateRemoteURL(input).href;expectedModel=normalizeDeviceQuery(expectedModel);
-  let initialDoc;
+  let initialDoc;const attempts=[];
   const read=async url=>{
-    const doc=await deviceDocument(url,fetchText);if(url===input)initialDoc=doc;
-    const device=extractDevice(doc.html,doc.source,{provider:doc.provider});
-    if(expectedModel&&!matchesQuery({title:device.brand+' '+device.name,url:'',description:''},expectedModel))throw new Error('Das geladene Datenblatt gehört nicht eindeutig zum gesuchten Modell. Wähle eine Quelle für die genaue Modellvariante.');
-    return {doc,device};
+    let doc,stage='Abruf';
+    try{
+      doc=await deviceDocument(url,fetchText);if(url===input)initialDoc=doc;stage='Daten auslesen';
+      const device=extractDevice(doc.html,doc.source,{provider:doc.provider});stage='Modell prüfen';
+      if(expectedModel&&!matchesQuery({title:device.brand+' '+device.name,url:'',description:''},expectedModel))throw new Error('Das Datenblatt nennt „'+device.name+'“ und passt nicht eindeutig zu „'+expectedModel+'“.');
+      return {doc,device};
+    }catch(error){attempts.push({url:doc?.source||url,stage,error:error.message});throw error;}
   };
   let loaded,primaryError;
   try{loaded=await read(input);}catch(error){primaryError=error;}
   if(!loaded&&fallback&&expectedModel){
     const tried=new Set([input]);
-    for(const url of initialDoc?specificationLinks(initialDoc):[]){tried.add(url);try{loaded=await read(url);break;}catch{}}
+    const linked=initialDoc?specificationLinks(initialDoc):[];
+    const official=classifySource(input).manufacturer==='nintendo'?nintendoSpecificationURLs(expectedModel):[];
+    for(const url of [...new Set([...linked,...official])].filter(url=>!tried.has(url)).slice(0,5)){tried.add(url);try{loaded=await read(url);break;}catch{}}
     if(!loaded){
       const search=await searchOnline(expectedModel,'all',{},fetchText);
       for(const row of search.results.filter(r=>!r.isPDF&&!tried.has(r.url)).slice(0,4)){try{loaded=await read(row.url);break;}catch{}}
     }
   }
-  if(!loaded)throw new Error(primaryError.message+(fallback&&expectedModel?' Auch die alternativen Quellen lieferten kein lesbares Datenblatt für dieses Modell.':''));
+  if(!loaded){const error=new Error(primaryError.message+(fallback&&expectedModel?' Auch die alternativen Quellen lieferten kein lesbares Datenblatt für dieses Modell.':''));error.attempts=attempts;error.source=input;error.expectedModel=expectedModel;throw error;}
   const {doc,device}=loaded;
   let image=await loadProductImage(doc.html,doc.source,device,doc.provider,fetchImage);
   if(!image&&enrichImages)image=(await findDeviceImage(device.name,'',{fetchText,fetchImage,skip:[doc.source]})).image;
@@ -73,7 +86,7 @@ export async function retrieveOnline(input,{expectedModel='',fallback=false,enri
   if(primaryError||doc.source!==input)warnings.push('Die ausgewählte Seite konnte nicht direkt als Datenblatt genutzt werden. Geladen wurde stattdessen: '+doc.source+'. Alle technischen Angaben sind dieser Quelle zugeordnet.');
   if(device.provenance.conflicts?.length)warnings.push('Widersprüchliche Angaben wurden ausgelassen: '+device.provenance.conflicts.map(c=>c.key).join(', ')+'. Prüfe die konkrete Variante auf der Originalseite.');
   if(!image)warnings.push('Diese Quelle liefert kein passendes ladbares Produktbild. Du kannst im Geräte-Editor nach einem Bild aus weiteren Quellen suchen.');
-  return {device,warnings};
+  return {device,warnings,attempts};
 }
 export async function findDeviceImage(name,source='',{fetchText=fetchPublicText,fetchImage=fetchPublicImage,skip=[]}={}) {
   name=String(name||'').trim();if(name.length<2||name.length>300)throw new Error('Gib zuerst einen konkreten Modellnamen ein.');

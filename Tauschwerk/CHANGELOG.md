@@ -1,3 +1,13 @@
+# 2.0.0
+
+- Neue helle Gestaltung mit Violett, Korallakzenten, transparenten Glasflächen und schwebender dunkler Navigation.
+- Vergleich, Katalog, Online-Recherche, Tauschrechner, Historie, Einstellungen und Dialoge neu gestaltet; mobile Navigation mit kurzen Beschriftungen, Tastaturfokus und reduzierte Bewegung berücksichtigt.
+- Nintendo-Datenblätter mit allgemeinen Überschriften, BEM-/wechselnden CSS-Klassen und zugänglichen Grids auslesen; konkrete Produktidentität aus Dokumenttitel, Produktdaten oder Produktname erhalten.
+- Bei gesperrten oder nicht auslesbaren Nintendo-Seiten passende offizielle Datenblattseiten zusätzlich prüfen. Switch, Switch 2, OLED und Lite weiter getrennt prüfen; keine technischen Angaben aus Suchbegriffen ableiten.
+- Bereits angezeigte Suchtreffer behalten ihren ursprünglichen Modellbezug, wenn das Suchfeld für das nächste Gerät verändert wird.
+- Fehler zeigen betroffene URL sowie Abruf-, Parser- oder Modellfehler je geprüfter Seite; denselben Abruf direkt erneut versuchen können.
+- Alten Quellen-Zwischenspeicher erneut auslesen; bestehende Kataloge, Tausche und Home-Assistant-Daten erhalten.
+
 # 1.8.0
 
 - Online-Katalogsuche fragt jeden freien Suchbegriff nach kurzer Eingabepause im Web ab; gespeicherte Geräte und Webtreffer getrennt anzeigen.

@@ -2,6 +2,7 @@
 
 Geräte vergleichen und Tauschangebote bewerten: als lokale Windows-App oder mit gemeinsamer Datenbank auf einem Home-Assistant-Server.
 
+- Moderne helle Oberfläche mit Glasflächen, Violettakzenten und mobiler Navigation.
 - Eigener Gerätekatalog für Handys, Konsolen, PC-Hardware, Uhren und weitere Kategorien.
 - Bis zu vier Geräte vergleichen; eigene Geräte und technische Merkmale bearbeiten.
 - Freie Online-Gerätesuche auch direkt im Katalog, mit Herstellerseiten, Fachquellen und Websuche.

@@ -23,7 +23,7 @@ test('Hardware-Suchformulare verwenden echte Parameter und konkrete Modellseiten
 });
 test('Produktverzeichnisse schließen fremde Domains und Ratgeber aus',async()=>{
   const r=await searchCatalog('rtings','Sony WH-1000XM5','en',async()=>({text:'<urlset><url><loc>https://www.rtings.com/headphones/reviews/sony/wh-1000xm5</loc></url><url><loc>https://evil.example/headphones/reviews/sony/wh-1000xm5</loc></url><url><loc>https://www.rtings.com/headphones/reviews/best/sony-wh-1000xm5</loc></url></urlset>'}));
-  assert.equal(r.results.length,1);assert.equal(r.results[0].browserOnly,true);
+  assert.equal(r.results.length,1);assert.equal(r.results[0].browserOnly,false);
   const maker=await searchManufacturerCatalog('Apple Watch Series 12','de','all',async()=>({text:'<urlset><loc>https://www.apple.com/de/apple-watch-series-12/specs/</loc><loc>https://www.apple.com/de/apple-watch-series-11/specs/</loc><loc>https://evil.example/de/apple-watch-series-12/specs/</loc></urlset>'}));
   assert.equal(maker.results.length,1);assert.equal(maker.results[0].manufacturer,'apple');
 });

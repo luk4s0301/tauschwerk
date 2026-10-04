@@ -44,7 +44,7 @@ test('Fehlende oder gesperrte Bilder lassen Gerätedaten erhalten',async()=>{
 test('Nur Rasterdateien und begrenzte sichere Bildmetadaten sind im Backup erlaubt',()=>{
   assert.equal(imageMime(png),'image/png');assert.equal(imageMime(Buffer.from('<svg onload="alert(1)"></svg>')),null);
   const device=extractDevice(html,source);const image={data:'data:image/png;base64,'+png.toString('base64'),url:source+'/photo.png',source,alt:name};
-  for(const change of [{data:'data:image/svg+xml;base64,PHN2Zz4='},{data:'data:image/png;base64,'+'A'.repeat(700001)},{source:''},{source:'https://user:secret@example.com'},{url:'javascript:alert(1)'}]){
+  for(const change of [{data:'data:image/svg+xml;base64,PHN2Zz4='},{data:'data:image/png;base64,'+'A'.repeat(2800001)},{source:''},{source:'https://user:secret@example.com'},{url:'javascript:alert(1)'}]){
     device.image={...image,...change};assert.throws(()=>validateStore({version:1,devices:[device],trades:[]}),/Produktbild/);
   }
 });

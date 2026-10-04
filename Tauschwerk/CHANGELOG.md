@@ -1,3 +1,14 @@
+# 1.8.0
+
+- Online-Katalogsuche fragt jeden freien Suchbegriff nach kurzer Eingabepause im Web ab; gespeicherte Geräte und Webtreffer getrennt anzeigen.
+- Switch 1/Original, Switch 2, OLED und Lite unterscheiden; RTX-Schreibweisen mit oder ohne Leerzeichen erkennen.
+- Öffentliche Webquellen direkt im Programm auf Gerätedaten prüfen; keine pauschalen Browser-only-Karten mehr für HTML-Seiten.
+- Nintendo-Regionaldomains und div-basierte Hardware-Datenblätter unterstützen; technische Herstellerlinks und passende Alternativquellen bei gesperrten oder unlesbaren Seiten automatisch prüfen. Tatsächlich verwendete Quelle bleibt sichtbar.
+- DuckDuckGo und Bing mit Google als Ersatzsuche ergänzen; Sperren und ausgeführte erfolglose Suchen klar melden.
+- Fehlende Bilder angezeigter Geräte automatisch suchen; weitere Quellen, responsive Bilder und Produktgalerien berücksichtigen.
+- Rasterbilder bis 2 MB laden und im Browser zu kompakten Vorschaubildern verkleinern. Bilder samt Herkunft bleiben offline und in Backups verfügbar.
+- Lange Abrufe abbrechen können, veraltete Suchantworten verwerfen und Offlinebetrieb erhalten.
+
 # 1.7.0
 
 - Tauschrechner mit freien Modelleingaben, optionalem Katalog und klar getrennten Online-/Eigenwerten.

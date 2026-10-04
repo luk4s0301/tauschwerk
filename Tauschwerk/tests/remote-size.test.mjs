@@ -41,6 +41,6 @@ test('Herstellerlimit gilt nach Dekomprimierung und Bilder bleiben begrenzt',asy
   responses(t,()=>({headers:{'content-encoding':'gzip'},body:zlib.gzipSync('x'.repeat(24*1024*1024+1))}));
   await assert.rejects(()=>fetchPublicText('https://www.samsung.com/specs'),/maximal 24 MB/);
   t.mock.restoreAll();
-  responses(t,()=>({type:'image/png',body:Buffer.alloc(512*1024+1)}));
-  await assert.rejects(()=>fetchPublicImage('https://www.samsung.com/photo.png'),/maximal 512 KB/);
+  responses(t,()=>({type:'image/png',body:Buffer.alloc(2*1024*1024+1)}));
+  await assert.rejects(()=>fetchPublicImage('https://www.samsung.com/photo.png'),/maximal 2 MB/);
 });

@@ -44,7 +44,7 @@ export async function searchCatalog(id,query,language,fetchText=fetchPublicText)
       if(u.hostname!=='www.rtings.com'||!/^\/(?:tv|monitor|headphones|soundbar|camera|mouse|keyboard|printer|vacuum|speaker|laptop)\/reviews\/(?!best|by-)[^/]+\/[^/]+\/?$/.test(u.pathname))continue;
       const title=u.pathname.split('/').slice(3).join(' ').replace(/-/g,' ');
       const row=result(title,url,'Unabhängiger Testbericht. Messwerte und technische Angaben auf der Originalseite ansehen.','RTINGS');
-      if(row&&matchesQuery(row,query))rows.push({...row,browserOnly:true});
+      if(row&&matchesQuery(row,query))rows.push(row);
     }
     return {results:rows.slice(0,12),warnings:[]};
   }

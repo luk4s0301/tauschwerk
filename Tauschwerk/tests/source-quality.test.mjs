@@ -34,9 +34,9 @@ test('GSMArena gruppiert dreispaltige Smartphone-Tabellen ohne Display-/Kamerami
   const d=extractDevice('<h1>Samsung Galaxy S25</h1><table><tr><th rowspan="2">Display</th><td>Type</td><td>AMOLED</td></tr><tr><td>Size</td><td>6.2 inches</td></tr><tr><th>Main Camera</th><td>Type</td><td>Triple</td></tr></table>','https://www.gsmarena.com/samsung_galaxy_s25-123.php',{provider:'gsmarena'});
   assert.equal(d.specs.length,3);assert.notEqual(d.specs[0].key,d.specs[2].key);assert.equal(d.specs[1].value,'6.2 inches');
 });
-test('Hersteller zuerst, Fachquellen danach, beliebige Webseiten nur zum Öffnen',()=>{
+test('Hersteller zuerst; weitere öffentliche Webseiten können direkt eingelesen werden',()=>{
   const rss='<rss><item><title>Samsung Galaxy S25 specs</title><link>https://random.example/galaxy-s25</link></item><item><title>Samsung Galaxy S25</title><link>https://www.samsung.com/galaxy-s25/</link></item></rss>';
-  const rows=rankResults(parseBingRSS(rss),'Samsung Galaxy S25');assert.equal(rows[0].provider,'manufacturer');assert.equal(rows[1].browserOnly,true);
+  const rows=rankResults(parseBingRSS(rss),'Samsung Galaxy S25');assert.equal(rows[0].provider,'manufacturer');assert.equal(rows[1].browserOnly,false);
 });
 test('Ausfall einer direkten Fachsuche fällt auf die Websuche der Fachquelle zurück',async()=>{
   const requests=[];const answer=await searchOnline('Samsung Galaxy S25','en',{source:'gsmarena'},async input=>{const u=new URL(input);requests.push(u);if(u.hostname==='www.gsmarena.com')throw Error('403');return {text:'<rss><item><title>Samsung Galaxy S25</title><link>https://www.gsmarena.com/samsung_galaxy_s25-123.php</link></item></rss>'};});

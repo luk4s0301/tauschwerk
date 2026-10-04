@@ -4,10 +4,10 @@ Geräte vergleichen und Tauschangebote bewerten: als lokale Windows-App oder mit
 
 - Eigener Gerätekatalog für Handys, Konsolen, PC-Hardware, Uhren und weitere Kategorien.
 - Bis zu vier Geräte vergleichen; eigene Geräte und technische Merkmale bearbeiten.
-- Online-Recherche mit Geräteart, passenden Fachquellen, Herstellerseiten und Websuche.
+- Freie Online-Gerätesuche auch direkt im Katalog, mit Herstellerseiten, Fachquellen und Websuche.
 - NanoReview, CPU-Monkey, GPU-Monkey und LaptopMedia; weitere Quellen gezielt auswählbar.
 - Übersichtliche Suche mit Quellenkarten und Vorschau vor dem Speichern.
-- Passende Produktbilder aus Online-Quellen, auch im Offline-Katalog und JSON-Backup.
+- Fehlende Produktbilder automatisch aus Online-Quellen ergänzen und kompakt speichern, auch für Offline-Katalog und JSON-Backup.
 - Tauschrechner mit freien Modellen, Mengen und Zusatzgeräten; beide Sets online abgleichen, eigene Vergleichsangebote ergänzen, Preisband prüfen und faire Zuzahlung übernehmen.
 - Home-Assistant-Anmeldung, gemeinsamer Katalog und gemerkte Vergleiche.
 - JSON-Backups und CSV-Export.

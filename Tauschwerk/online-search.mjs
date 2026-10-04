@@ -1,16 +1,17 @@
 import crypto from 'node:crypto';
 import {fetchPublicText,validateRemoteURL} from './remote.mjs';
 import {textOnly,decodeEntities} from './online-parser.mjs';
-import {classifySource,manufacturers,detectManufacturer,domainMatches,isExcludedSource,specialistSources} from './online-sources.mjs';
+import {classifySource,manufacturers,detectManufacturer,domainMatches,isExcludedSource,normalizeDeviceQuery} from './online-sources.mjs';
 
 const normalize=s=>String(s).replace(/\+/g,' plus ').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 export function matchesQuery(row,query){
-  const tokens=normalize(query).split(' ').filter(t=>t.length>1&&!['specs','specifications','technische','daten','laptop','notebook','gen','generation'].includes(t));
-  const haystack=normalize(row.title+' '+(row.description || '')+' '+row.url);
-  const identity=normalize(row.title+' '+row.url+' '+(row.modelSeries || ''));
-  const variants=['pro','max','ultra','plus','mini','lite','fe'];
+  const tokens=normalize(normalizeDeviceQuery(query)).split(' ').filter(t=>(t.length>1||/\d/.test(t))&&!['specs','specifications','technische','daten','laptop','notebook','gen','generation'].includes(t));
+  const haystack=normalize(normalizeDeviceQuery(row.title)+' '+(row.description || '')+' '+row.url);
+  const identity=normalize(normalizeDeviceQuery(row.title)+' '+row.url+' '+(row.modelSeries || ''));
+  const variants=['pro','max','ultra','plus','mini','lite','fe','oled','ti','super','xt','xtx','se'];
   const identityTokens=identity.split(' ');
   if(variants.some(t=>identityTokens.includes(t)!==tokens.includes(t)))return false;
+  if(tokens.includes('switch')&&!tokens.some(t=>/^\d+$/.test(t))&&/\bswitch\s+2\b/.test(identity))return false;
   const modelTokens=tokens.filter(t=>/\d/.test(t));
   return tokens.length>0&&modelTokens.every(t=>identity.split(' ').includes(t))&&tokens.filter(t=>haystack.includes(t)||identity.includes(t)).length>=Math.ceil(tokens.length*0.7);
 }
@@ -18,7 +19,7 @@ export function result(title,url,description,engine){
   if(isExcludedSource(url))return null;
   try{url=validateRemoteURL(url).href;}catch{return null;}
   const source=classifySource(url);
-  return {id:'search-'+crypto.createHash('sha256').update(url).digest('hex').slice(0,20),title:textOnly(title).slice(0,300),description:textOnly(description).slice(0,700),url,provider:source.kind,sourceName:source.name,manufacturer:source.manufacturer,host:source.host,engine,browserOnly:source.kind==='website'||Boolean(specialistSources.find(s=>s.name===source.name)?.browserOnly),isPDF:/\.pdf(?:$|[?#])/i.test(url)};
+  return {id:'search-'+crypto.createHash('sha256').update(url).digest('hex').slice(0,20),title:textOnly(title).slice(0,300),description:textOnly(description).slice(0,700),url,provider:source.kind,sourceName:source.name,manufacturer:source.manufacturer,host:source.host,engine,browserOnly:false,isPDF:/\.pdf(?:$|[?#])/i.test(url)};
 }
 function xmlValue(block,tag){const raw=block.match(new RegExp('<'+tag+'(?:\\s[^>]*)?>([\\s\\S]*?)<\\/'+tag+'>','i'))?.[1] || '';return decodeEntities(raw.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1'));}
 export function parseBingRSS(xml){
@@ -28,7 +29,7 @@ function attribute(html,name){return decodeEntities(html.match(new RegExp('\\b'+
 export function parseDuckDuckGo(html){
   const results=[];
   for(const m of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)){
-    if(!/(?:^|\s)result__a(?:\s|$)/.test(attribute(m[1],'class')))continue;
+    if(!/(?:^|\s)(?:result__a|result-link)(?:\s|$)/.test(attribute(m[1],'class')))continue;
     let url=attribute(m[1],'href');
     try{const link=new URL(url,'https://html.duckduckgo.com');url=domainMatches(link.hostname,'duckduckgo.com')?link.searchParams.get('uddg'):link.href;}catch{continue;}
     const tail=html.slice(m.index+m[0].length,m.index+m[0].length+5000);
@@ -36,6 +37,16 @@ export function parseDuckDuckGo(html){
     const row=result(m[2],url,snippet,'DuckDuckGo');if(row?.title)results.push(row);
   }
   return results;
+}
+export function parseGoogle(html){
+  const rows=[];
+  for(const m of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)){
+    const title=m[2].match(/<h3\b[^>]*>([\s\S]*?)<\/h3>/i)?.[1];if(!title)continue;
+    let url=attribute(m[1],'href');
+    try{const link=new URL(url,'https://www.google.com');url=domainMatches(link.hostname,'google.com')?link.searchParams.get('q')||link.searchParams.get('url'):link.href;}catch{continue;}
+    const row=result(title,url,'Webtreffer. Technische Angaben werden beim Laden der Quelle geprüft.','Google');if(row)rows.push(row);
+  }
+  return rows;
 }
 function canonicalURL(input){const u=new URL(input);for(const key of [...u.searchParams.keys()])if(/^utm_|^(?:fbclid|gclid|ref)$/i.test(key))u.searchParams.delete(key);return u.href.replace(/\/$/,'');}
 export function rankResults(rows,query,{source='all',manufacturer='all'}={}){
@@ -51,7 +62,7 @@ export function rankResults(rows,query,{source='all',manufacturer='all'}={}){
   return [...unique.values()].sort((a,b)=>score(b)-score(a)).slice(0,32);
 }
 export async function searchWeb(query,language,{source='all',manufacturer='all',domains=[]}={},fetchText=fetchPublicText){
-  query=query.replace(/\bps([345])\b/ig,'PlayStation $1');
+  query=normalizeDeviceQuery(query);
   const maker=manufacturers.find(m=>m.id===manufacturer) || detectManufacturer(query);
   const languages=language==='all'?['de','en']:[language];
   const restrictions=domains.length?domains:source==='manufacturer'&&maker?maker.domains:[''];
@@ -69,14 +80,19 @@ export async function searchWeb(query,language,{source='all',manufacturer='all',
       const url=new URL(base);url.searchParams.set('q',search+' -site:wikipedia.org -site:wikimedia.org -site:wikidata.org');
       if(name==='Bing'){url.searchParams.set('format','rss');url.searchParams.set('mkt',lang==='de'?'de-DE':'en-US');}
       else url.searchParams.set('kl',lang==='de'?'de-de':'us-en');
-      return parse((await fetchText(url.href)).text);
+      const text=(await fetchText(url.href)).text;
+      if(/anomaly-modal|challenge-form|cf-turnstile|verify you are human|g-recaptcha/i.test(text))throw Error('Der Suchanbieter blockiert den automatischen Abruf.');
+      return parse(text);
     }));
     answers.forEach((answer,i)=>{if(answer.status==='fulfilled')rows.push(...answer.value);else errors.push(engines[i][0]+': '+answer.reason.message);});
+    if(!rankResults(rows,query,{source,manufacturer}).some(r=>!domains.length||domains.some(d=>domainMatches(new URL(r.url).hostname,d)))){
+      try{const url=new URL('https://www.google.com/search');url.searchParams.set('q',search+' -site:wikipedia.org -site:wikimedia.org -site:wikidata.org');url.searchParams.set('hl',lang);const text=(await fetchText(url.href)).text;if(/g-recaptcha|unusual traffic|verify you are human/i.test(text))throw Error('Der Suchanbieter blockiert den automatischen Abruf.');rows.push(...parseGoogle(text));}catch(error){errors.push('Google: '+error.message);}
+    }
     return {rows,errors};
   }));
   const fulfilled=responses.filter(r=>r.status==='fulfilled').map(r=>r.value);
   const results=rankResults(fulfilled.flatMap(r=>r.rows),query,{source,manufacturer}).filter(r=>!domains.length||domains.some(d=>domainMatches(new URL(r.url).hostname,d)));
-  const warnings=results.length?[]:['Die Websuche hat keine ausreichend passenden Treffer geliefert. Versuche die genaue Modellnummer oder einen direkten Hersteller-/Geizhals-Link.',...new Set(fulfilled.flatMap(r=>r.errors))];
+  const warnings=[...(!results.length?['Die Websuche wurde ausgeführt, hat aber keine ausreichend passenden Treffer geliefert. Prüfe Modellnummer und Schreibweise.']:[]),...new Set(fulfilled.flatMap(r=>r.errors))];
   return {results,warnings};
 }
 export function extractLaptopLinks(html,base,query){

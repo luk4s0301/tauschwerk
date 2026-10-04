@@ -48,7 +48,7 @@ export function validateStore(store) {
     ids.add(d.id);
     if(d.image!==undefined&&d.image!==null){
       const i=d.image;
-      if(!i||typeof i!=='object'||!str(i.data,700000)||!/^data:image\/(?:jpeg|png|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$/.test(i.data)||!imageUrl(i.url)||!imageUrl(i.source)||!str(i.alt)||!str(i.attribution??'',2000))fail('Ungültiges Produktbild.');
+      if(!i||typeof i!=='object'||!str(i.data,2800000)||!/^data:image\/(?:jpeg|png|webp|avif);base64,[A-Za-z0-9+/]+={0,2}$/.test(i.data)||!imageUrl(i.url)||!imageUrl(i.source)||!str(i.alt)||!str(i.attribution??'',2000))fail('Ungültiges Produktbild.');
     }
     if (!Array.isArray(d.specs) || d.specs.length > 100 || d.specs.some(s => !s || !str(s.key, 100) || !str(s.value, 2000))) fail('Ungültige technische Daten.');
     if (!Array.isArray(d.offers) || d.offers.length > 100 || d.offers.some(o => !o || !Number.isFinite(o.price) || o.price <= 0 || o.price > 10000000 || !safeUrl(o.url) || !str(o.note ?? '', 2000) || !str(o.date ?? '', 50))) fail('Ungültige Vergleichspreise.');

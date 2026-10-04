@@ -30,3 +30,9 @@ Home-Assistant-Backups der App enthalten `/data`. Zusätzlich kannst du in Tausc
 ## Tauschrechner
 
 Beide Modelle frei eingeben, Variante und Zustand wählen und „Beide Sets online abgleichen“ drücken. Zusatzgeräte haben eigene Varianten und Zustände. Händlerpreise, private Angebote und selbst erfasste Vergleichsangebote werden getrennt ausgewertet. Wenn Preisquellen Abrufe sperren, bieten die Quellenlinks die Suche im Browser; alternativ eigene Vergleichsangebote oder einen eigenen Setwert erfassen. Keine Zuzahlung, eigene Zuzahlung und erhaltene Zuzahlung sind getrennte Optionen. Der Rechner zeigt einen rechnerischen Wertausgleich und speichert die Quellen mit der Bewertung. Angebotspreise bleiben eine Orientierung, keine bestätigten Verkaufspreise.
+
+## Geräte online finden und vergleichen
+
+Im Online-Modus sucht das Katalog-Suchfeld nach kurzer Eingabepause zusätzlich im Internet. Webtreffer erscheinen unter den gespeicherten Geräten. Alternativ unter Online-Recherche einen beliebigen Modellnamen eingeben und „Online suchen“ wählen. „Daten & Bild laden“ liest die Quelle direkt ein; bei einer gesperrten oder unlesbaren Suchquelle werden passende technische Herstellerlinks und andere Quellen geprüft. Die Vorschau zeigt die tatsächlich verwendete Datenquelle. „Switch 1“ bezeichnet die normale Nintendo Switch; Switch 2, OLED und Lite bleiben getrennt. Auch RTX-Schreibweisen ohne Leerzeichen werden erkannt.
+
+Fehlende Bilder angezeigter Geräte werden automatisch gesucht, beim Speichern verkleinert und im dauerhaften Gerätespeicher abgelegt. Bild- und Datenquelle können verschieden sein und sind entsprechend gekennzeichnet. Öffentliche Webseiten können Abrufe sperren oder Daten ausschließlich per JavaScript bereitstellen; wenn keine auslesbare passende Quelle gefunden wird, meldet Tauschwerk dies. Es werden keine Gerätewerte oder technischen Merkmale erfunden.

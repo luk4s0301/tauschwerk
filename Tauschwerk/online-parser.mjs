@@ -1,5 +1,5 @@
 // Parses fetched documents as data. No website scripts are executed.
-import {isExcludedSource,classifySource} from './online-sources.mjs';
+import {isExcludedSource,classifySource,normalizeDeviceQuery} from './online-sources.mjs';
 import crypto from 'node:crypto';
 
 export function decodeEntities(s) {
@@ -36,6 +36,8 @@ const aliases = new Map(Object.entries({
   'hauptprozessor':'Prozessor','äußere abmessungen':'Abmessungen','speicherkapazität*':'Speicherkapazität','leistungsaufnahme':'Leistungsaufnahme',
   'main camera':'Hauptkamera','selfie camera':'Frontkamera','ram size':'Arbeitsspeicher','ram type':'RAM-Typ','storage size':'Speicher',
   'storage type':'Speichertyp','aspect ratio':'Seitenverhältnis','size':'Größe','aperture':'Blende','frequency':'Takt',
+  'cpu/gpu':'Prozessor und Grafik','internal storage':'Speicher','interner speicher':'Speicher','system memory':'Arbeitsspeicher',
+  'screen size':'Displaygröße','battery capacity':'Akkukapazität','batteriekapazität':'Akkukapazität','battery duration':'Laufzeit',
   'video recording':'Videoaufnahme','adaptive refresh rate':'Adaptive Bildwiederholrate','max rated brightness':'Maximale Helligkeit',
   'max rated brightness in hdr':'Maximale HDR-Helligkeit','pixel density':'Pixeldichte','charging power':'Ladeleistung',
   'wireless charging':'Kabelloses Laden','fast charging':'Schnellladen','reverse charging':'Umgekehrtes Laden','battery type':'Akkutyp'
@@ -98,14 +100,15 @@ function guessBrand(name,specs){const explicit=specs.find(s=>['Marke','Herstelle
 
 // Match the actual model, ignoring storage/colour suffixes but retaining Pro/Max/Ultra.
 export function imageModelMatches(requested,candidate) {
-  const tokens=s=>textOnly(s).split(/\s*[·|]\s*/)[0].replace(/(\d+)\s*(?:gb|tb)\b/ig,'').replace(/\+/g,' plus ').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
+  const tokens=s=>normalizeDeviceQuery(textOnly(s).split(/\s*[·|]\s*/)[0]).replace(/(\d+)\s*(?:gb|tb)\b/ig,'').replace(/\+/g,' plus ').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
   const wanted=tokens(requested).filter(t=>!['apple','samsung','sony','microsoft','google','nvidia','amd','intel','valve','technical','specifications','technische','daten'].includes(t));
   const actual=tokens(candidate);
-  const variants=['pro','max','ultra','plus','mini','lite','air','fe'];
+  const variants=['pro','max','ultra','plus','mini','lite','air','fe','oled','ti','super','xt','xtx','se'];
   const gpuVendors=['asus','msi','gigabyte','aorus','zotac','palit','gainward','sapphire','powercolor','xfx'];
   const genericGPU=wanted.length===3&&['geforce','radeon'].includes(wanted[0]);
   const gpuExact=!genericGPU||actual.every(t=>wanted.includes(t)||['nvidia','amd','graphics','card','cards','specs','specifications','technical','technische','daten','benchmark','benchmarks','and'].includes(t));
-  return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t))&&gpuExact&&(!wanted.some(t=>['geforce','radeon'].includes(t))||gpuVendors.every(t=>!actual.includes(t)||wanted.includes(t)));
+  const switchExact=!wanted.includes('switch')||wanted.includes('2')===actual.includes('2');
+  return wanted.length>0&&wanted.every(t=>actual.includes(t))&&variants.every(t=>!actual.includes(t)||wanted.includes(t))&&switchExact&&gpuExact&&(!wanted.some(t=>['geforce','radeon'].includes(t))||gpuVendors.every(t=>!actual.includes(t)||wanted.includes(t)));
 }
 export function extractImageCandidates(html,url,{name,provider='website'}={}) {
   if(isExcludedSource(url)||provider==='wikipedia')return [];
@@ -120,15 +123,16 @@ export function extractImageCandidates(html,url,{name,provider='website'}={}) {
   }
   const metas=[...descendants(tree,'meta')];
   const meta=key=>attr(metas.find(n=>attr(n,'property')===key||attr(n,'name')===key)||{},'content');
-  const pageName=meta('og:title')||textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'')||cleanNode([...descendants(tree,'h1')][0]||{children:[]});
-  const pageMatches=imageModelMatches(name,pageName);
+  const pageMatches=[meta('og:title'),textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||''),cleanNode([...descendants(tree,'h1')].find(n=>!ancestor(n,'nav'))||{children:[]})].some(title=>imageModelMatches(name,title));
+  const responsive=(value)=>String(value||'').split(',').map(part=>{const m=part.trim().match(/^(\S+)\s+(\d+(?:\.\d+)?)(w|x)$/);return m?{url:m[1],width:Number(m[2])*(m[3]==='x'?320:1)}:null;}).filter(Boolean).sort((a,b)=>Math.abs(a.width-400)-Math.abs(b.width-400));
   for(const img of descendants(tree,'img')){
-    if(ancestor(img,'nav')||ancestor(img,'footer'))continue;
-    const alt=attr(img,'alt');const src=attr(img,'data-src')||attr(img,'src');
+    if(ancestor(img,'nav')||ancestor(img,'footer')||ancestor(img,'aside'))continue;
+    let context=img;let related=false,productContext=false;while(context){const label=attr(context,'class')+' '+attr(context,'id');if(/related|recommend|accessories|localnav/i.test(label))related=true;if(/product[-_ ]?(?:image|gallery|hero)|(?:hero|gallery|packshot)|main[-_ ]?image/i.test(label))productContext=true;context=context.parent;}if(related)continue;
+    const alt=attr(img,'alt');const src=attr(img,'data-src')||attr(img,'data-lazy-src')||attr(img,'src');
     const isModel=imageModelMatches(name,alt)||imageModelMatches(name,src.split('/').at(-1));
-    if(isModel){const width=Number(attr(img,'width')),height=Number(attr(img,'height'));if(width&&width<60||height&&height<60)continue;add(src,alt,90);}
+    if(isModel||pageMatches&&productContext&&!alt){const width=Number(attr(img,'width')),height=Number(attr(img,'height'));if(width&&width<60||height&&height<60)continue;const picture=ancestor(img,'picture');const sets=[attr(img,'data-srcset')||attr(img,'srcset'),...[...descendants(picture||{children:[]},'source')].map(n=>attr(n,'srcset'))];for(const item of sets.flatMap(responsive))add(item.url,alt,95);add(src,alt,isModel?90:70);}
   }
-  if(pageMatches){add(meta('og:image:secure_url')||meta('og:image'),meta('og:image:alt')||name,80);add(meta('twitter:image'),meta('twitter:image:alt')||name,75);}
+  if(pageMatches){for(const [key,score] of [['og:image:secure_url',80],['og:image',80],['twitter:image',75]]){const alt=meta(key.startsWith('og:')?'og:image:alt':'twitter:image:alt');if(!alt||imageModelMatches(name,alt))add(meta(key),alt||name,score);}}
   return candidates.sort((a,b)=>b.score-a.score).slice(0,8);
 }
 
@@ -172,7 +176,7 @@ export function extractDevice(html,url,{title='',provider='website',description=
         if(ancestor(dt,'dl')!==dl||related(dt))continue;
         const siblings=dt.parent.children;const dd=siblings.slice(siblings.indexOf(dt)+1).find(n=>n.tag==='dd'||n.tag==='dt');
         const label=cleanNode(dt);
-        if(dd?.tag==='dd'&&label.length<=100&&(aliases.has(label.toLowerCase().replace(/:$/,''))||provider==='manufacturer'||classifySource(url).kind==='database'))add(provider==='gpu-monkey'&&label==='Memory'?'Grafikspeicher':label,cleanNode(dd));
+        if(dd?.tag==='dd'&&label.length<=100)add(provider==='gpu-monkey'&&label==='Memory'?'Grafikspeicher':label,cleanNode(dd));
       }
     }
   }
@@ -195,13 +199,18 @@ export function extractDevice(html,url,{title='',provider='website',description=
   }
   // Accessible div tables (used by official console and accessory data sheets).
   let accessibleTable;
-  for(const row of descendants(tree,'div')){
+  for(const row of [...descendants(tree,'div'),...descendants(tree,'li')]){
     if(attr(row,'role')!=='row'||related(row))continue;
     const cells=(row.children||[]).filter(n=>['cell','rowheader','columnheader'].includes(attr(n,'role')));
     let container=row.parent;while(container&&!attr(container,'role').split(/\s+/).includes('table'))container=container.parent;
     if(cells.length!==2||!container)continue;
     accessibleTable||=container;if(container!==accessibleTable)continue;
     add(cleanNode(cells[0]),cleanNode(cells[1]));
+  }
+  // Nintendo's European hardware sheets use table-row/table-column divs.
+  if(classifySource(url).manufacturer==='nintendo')for(const row of descendants(tree,'div')){
+    if(related(row)||!/(?:^|\s)(?:table[-_]row|specs?[-_]row)(?:\s|$)/i.test(attr(row,'class')))continue;
+    const cells=(row.children||[]).filter(n=>n.tag!=='#text');if(cells.length===2)add(cleanNode(cells[0]),cleanNode(cells[1]));
   }
   // Samsung and other manufacturer pages use labelled spec blocks, not HTML tables.
   for(const tag of ['li','div'])for(const row of descendants(tree,tag)){

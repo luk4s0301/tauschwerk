@@ -3,7 +3,7 @@ import https from 'node:https';
 import dns from 'node:dns/promises';
 import net from 'node:net';
 import zlib from 'node:zlib';
-const agent='Tauschwerk/1.5 (local device comparison; user initiated requests)';
+const agent='Tauschwerk/1.8 (local device comparison; user initiated requests)';
 export function isPublicAddress(address) {
   const type=net.isIP(address);
   if(type===4){const [a,b,c]=address.split('.').map(Number);return !(a===0||a===10||a===127||a>=224||(a===100&&b>=64&&b<=127)||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&(b===168||(b===0&&c===0)||(b===0&&c===2)))||(a===198&&(b===18||b===19||(b===51&&c===100)))||(a===203&&b===0&&c===113));}
@@ -54,8 +54,8 @@ async function requestPublic(input,redirects,asImage) {
       // Large manufacturer pages include extensive embedded product data. Apply
       // this allowance to the final validated domain, including after redirects.
       const textLimitMB=classifySource(url.href).kind==='manufacturer'?24:6;
-      const limit=asImage?512*1024:textLimitMB*1024*1024;
-      stream.on('data',chunk=>{size+=chunk.length;if(size>limit){stream.destroy();request.destroy();done(new Error(asImage?'Das Produktbild ist zu groß (maximal 512 KB).':`Das Datenblatt ist zu groß (maximal ${textLimitMB} MB).`));}else chunks.push(chunk);});
+      const limit=asImage?2*1024*1024:textLimitMB*1024*1024;
+      stream.on('data',chunk=>{size+=chunk.length;if(size>limit){stream.destroy();request.destroy();done(new Error(asImage?'Das Produktbild ist zu groß (maximal 2 MB).':`Das Datenblatt ist zu groß (maximal ${textLimitMB} MB).`));}else chunks.push(chunk);});
       stream.on('error',error=>done(error));response.on('error',error=>done(error));
       stream.on('end',()=>{const bytes=Buffer.concat(chunks);if(asImage){const mime=imageMime(bytes);if(!mime||mime!==contentType.split(';')[0].toLowerCase())return done(new Error('Ungültige Bilddatei.'));return done(null,{bytes,url:url.href,contentType:mime});}done(null,{text:bytes.toString('utf8'),url:url.href,contentType});});
     });

@@ -52,3 +52,6 @@ h1{font-size:32px;letter-spacing:-.7px}.page-head .subtitle{font-size:14px;line-
 @media(max-width:760px){.trade-sides{grid-template-columns:1fr}.trade-toolbar .btn{flex:1 1 100%}.trade-side{padding:18px}.trade-item-head h2{font-size:18px}.trade-layout .result-panel .result-lines{display:block}.cash-controls{grid-template-columns:1fr}.trade-side .form-grid{grid-template-columns:1fr 1fr}.valuation-answer{padding:12px}.fair-cash .btn{width:100%!important}}
 
 .trade-sides{align-items:start}
+.catalog-web{margin-top:28px;padding-top:24px;border-top:1px solid var(--line)}
+.catalog-web>h2{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.catalog-web .online-result h3,.catalog-web .online-result p{overflow-wrap:anywhere}

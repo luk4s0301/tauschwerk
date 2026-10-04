@@ -14,7 +14,7 @@ export const manufacturers = [
   {id:'gigabyte',name:'Gigabyte',domains:['gigabyte.com'],models:'aorus'},
   {id:'google',name:'Google',domains:['google.com'],models:'pixel'},
   {id:'sony',name:'Sony / PlayStation',domains:['sony.com','sony.de','playstation.com'],models:'playstation'},
-  {id:'nintendo',name:'Nintendo',domains:['nintendo.com','nintendo.de']},
+  {id:'nintendo',name:'Nintendo',domains:['nintendo.com','nintendo.de','nintendo.co.uk','nintendo.co.jp'],models:'nintendo|switch'},
   {id:'valve',name:'Valve',domains:['steampowered.com','steamdeck.com'],models:'steam deck'},
   {id:'amd',name:'AMD',domains:['amd.com'],models:'ryzen|radeon'},
   {id:'intel',name:'Intel',domains:['intel.com','intel.de'],models:'core ultra'},
@@ -84,7 +84,7 @@ export function detectManufacturer(query){
   return manufacturers.find(m=>new RegExp('\\b(?:'+m.id+'|'+(m.models || m.id)+')\\b','i').test(text));
 }
 export function detectDeviceKind(query){
-  const t=String(query).toLowerCase();
+  const t=normalizeDeviceQuery(query).toLowerCase();
   if(/watch|fenix|fēnix|forerunner|venu|vivoactive|suunto|fitbit|vantage|smartwatch/.test(t))return 'watches';
   if(/iphone|galaxy (?:s|a|z)|pixel|redmi|poco|oneplus|smartphone|ipad|tablet|nothing phone|fairphone/.test(t))return 'phones';
   if(/playstation|\bps[345]\b|xbox|nintendo|steam deck|rog ally|legion go/.test(t))return 'consoles';
@@ -97,6 +97,18 @@ export function detectDeviceKind(query){
   if(/ssd|hdd|keyboard|tastatur|maus|mouse|router|mainboard|motherboard|kingston|crucial|seagate/.test(t))return 'peripherals';
   if(/dyson|roborock|staubsauger|vacuum|waschmaschine|kaffeemaschine|smart home/.test(t))return 'home';
   return 'other';
+}
+
+// Common model spellings, without inventing a model from unrelated free text.
+export function normalizeDeviceQuery(input){
+  return String(input||'').trim().replace(/[™®]/g,'')
+    .replace(/\bps\s*([345])\b/ig,'PlayStation $1')
+    .replace(/\b(rtx|gtx)\s*([1-9]\d)\s+(\d{2})\b/ig,'$1 $2$3')
+    .replace(/\b(rtx|gtx)\s*(\d{3,4})\b/ig,'$1 $2')
+    .replace(/\bswitch\s*([12])\b/ig,'Switch $1')
+    .replace(/\b(?:nintendo\s+)?switch\s*(?:1|erste\s+generation|original)\b/ig,'Nintendo Switch')
+    .replace(/^(?:switch)(?=\s|$)/i,'Nintendo Switch')
+    .replace(/\s+/g,' ').trim();
 }
 
 export function isExcludedSource(input){

@@ -18,6 +18,7 @@ const models=[
 let model=0;
 await page.route('**/api/online/**',async route=>{
   const u=new URL(route.request().url());requests.push(u);
+  if(u.pathname.endsWith('/image'))return route.fulfill({json:{image:null}});
   if(u.pathname.endsWith('/search')){model=u.searchParams.get('kind')==='gpu'?1:u.searchParams.get('kind')==='watches'?2:0;const d=models[model];return route.fulfill({json:{results:[{title:d.name+' · weitere Quelle',url:'https://example.com/model',sourceName:'Andere Quelle'},{title:d.name,url:d.source,sourceName:model===0?'NanoReview':model===1?'GPU-Monkey':'Apple',provider:model===2?'manufacturer':'database'},{title:d.name+' Test',url:'https://www.rtings.com/test',sourceName:'RTINGS',browserOnly:true}],warnings:[]}});}
   const found=models.find(d=>d.source===u.searchParams.get('url'));assert.ok(found,'Quellenfilter muss den Originalindex erhalten');return route.fulfill({json:{device:found,warnings:[]}});
 });
@@ -26,7 +27,7 @@ try{
   await page.locator('[data-mode="online"]').click();await page.locator('.research-steps li').first().waitFor();assert.ok(!await page.locator('#online-source').isVisible());assert.equal(await page.locator('.research-steps li').count(),3);
   for(const [kind,query,source] of [['phones','iPhone 17 Pro','NanoReview'],['gpu','RTX 5090','GPU-Monkey'],['watches','Apple Watch Series 12','Apple']]){
     await page.locator('#online-kind').selectOption(kind);await page.locator('#online-query').fill(query);await page.locator('#online-search-form [type="submit"]').click();await page.locator('.online-result').first().waitFor();assert.equal(requests.at(-1).searchParams.get('kind'),kind);
-    assert.equal(await page.getByRole('link',{name:'Testbericht öffnen'}).count(),1);await page.getByRole('button',{name:source,exact:true}).click();assert.equal(await page.locator('.online-result').count(),1);await page.locator('[data-action="online-fetch"]').click();await page.locator('.online-preview').waitFor();assert.ok(await page.locator('.spec-highlights').isVisible());await page.locator('.spec-details summary').click();assert.ok(await page.locator('.online-preview tbody tr').first().isVisible());assert.equal(await page.locator('.online-preview tbody tr').first().locator('td').count(),3);assert.equal(await page.locator('.online-preview tbody tr').first().getByRole('link').getAttribute('href'),models[model].source);
+    assert.equal(await page.locator('[data-action="online-fetch"]').count(),3);await page.getByRole('button',{name:source,exact:true}).click();assert.equal(await page.locator('.online-result').count(),1);await page.locator('[data-action="online-fetch"]').click();await page.locator('.online-preview').waitFor();assert.ok(await page.locator('.spec-highlights').isVisible());await page.locator('.spec-details summary').click();assert.ok(await page.locator('.online-preview tbody tr').first().isVisible());assert.equal(await page.locator('.online-preview tbody tr').first().locator('td').count(),3);assert.equal(await page.locator('.online-preview tbody tr').first().getByRole('link').getAttribute('href'),models[model].source);
     await page.locator('[data-action="online-compare"]').click();await page.locator('[data-action="picker"]').first().click();
   }
   assert.equal(await page.locator('.online-selection-device').count(),3);

@@ -55,13 +55,13 @@ const server = http.createServer(async (req,res) => {
   const url = new URL(req.url, origin);
   const authenticated = shared || (req.headers.cookie || '').split(';').some(c=>c.trim()===`tw_session=${token}`);
   const send = (code,payload,headers={}) => {res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(payload));};
-  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.6.3'});
+  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.6.4'});
   if (!shared && url.pathname === '/' && url.searchParams.get('token') === token) {
     res.writeHead(302,{'Set-Cookie':`tw_session=${token}; HttpOnly; SameSite=Strict; Path=/`,'Location':'/','Cache-Control':'no-store'});return res.end();
   }
   if (!authenticated) return send(401,{error:'Bitte Tauschwerk.exe starten.'});
   lastSeen = Date.now();
-  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.6.3'});
+  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.6.4'});
   if (url.pathname === '/api/store' && req.method === 'GET') {const data=structuredClone(store);if(shared)delete data.ui;return send(200,data,{ETag:revision});}
   if (url.pathname === '/api/ping' && req.method === 'POST') return send(200,{ok:true});
   if(url.pathname==='/api/online/valuation'&&req.method==='POST'){

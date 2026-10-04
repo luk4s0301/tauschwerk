@@ -1,6 +1,6 @@
 {
   "name": "tauschwerk",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "private": true,
   "type": "module",
   "description": "Lokaler Ger\u00e4tevergleich und Tauschrechner",

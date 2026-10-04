@@ -1,3 +1,8 @@
+# 1.6.4
+
+- Große Hersteller-Datenblätter, einschließlich Samsung, bis 24 MB entpackter Seitengröße einlesen.
+- Andere Quellen bleiben auf 6 MB und Produktbilder auf 512 KB begrenzt; Weiterleitungen prüfen die Zielquelle erneut.
+
 # 1.6.3
 
 - Herstellerseiten vor Geizhals und Fachquellen; Samsung-Datenblöcke und GSMArena-Tabellen besser auslesen.

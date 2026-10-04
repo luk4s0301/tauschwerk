@@ -1,4 +1,4 @@
-import {isExcludedSource} from './online-sources.mjs';
+import {isExcludedSource,classifySource} from './online-sources.mjs';
 import https from 'node:https';
 import dns from 'node:dns/promises';
 import net from 'node:net';
@@ -51,8 +51,11 @@ async function requestPublic(input,redirects,asImage) {
       const encoding=response.headers['content-encoding'];
       if(encoding==='gzip')stream=response.pipe(zlib.createGunzip());else if(encoding==='br')stream=response.pipe(zlib.createBrotliDecompress());else if(encoding==='deflate')stream=response.pipe(zlib.createInflate());
       const chunks=[];let size=0;
-      const limit=asImage?512*1024:6*1024*1024;
-      stream.on('data',chunk=>{size+=chunk.length;if(size>limit){stream.destroy();request.destroy();done(new Error(asImage?'Das Produktbild ist zu groß (maximal 512 KB).':'Das Datenblatt ist zu groß (maximal 6 MB).'));}else chunks.push(chunk);});
+      // Large manufacturer pages include extensive embedded product data. Apply
+      // this allowance to the final validated domain, including after redirects.
+      const textLimitMB=classifySource(url.href).kind==='manufacturer'?24:6;
+      const limit=asImage?512*1024:textLimitMB*1024*1024;
+      stream.on('data',chunk=>{size+=chunk.length;if(size>limit){stream.destroy();request.destroy();done(new Error(asImage?'Das Produktbild ist zu groß (maximal 512 KB).':`Das Datenblatt ist zu groß (maximal ${textLimitMB} MB).`));}else chunks.push(chunk);});
       stream.on('error',error=>done(error));response.on('error',error=>done(error));
       stream.on('end',()=>{const bytes=Buffer.concat(chunks);if(asImage){const mime=imageMime(bytes);if(!mime||mime!==contentType.split(';')[0].toLowerCase())return done(new Error('Ungültige Bilddatei.'));return done(null,{bytes,url:url.href,contentType:mime});}done(null,{text:bytes.toString('utf8'),url:url.href,contentType});});
     });

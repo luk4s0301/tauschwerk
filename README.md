@@ -8,7 +8,7 @@ Geräte vergleichen und Tauschangebote bewerten: als lokale Windows-App oder mit
 - NanoReview, CPU-Monkey, GPU-Monkey und LaptopMedia; weitere Quellen gezielt auswählbar.
 - Übersichtliche Suche mit Quellenkarten und Vorschau vor dem Speichern.
 - Passende Produktbilder aus Online-Quellen, auch im Offline-Katalog und JSON-Backup.
-- Tauschrechner mit Online-Setbewertung für beide Seiten: Kleinanzeigen, reBuy und idealo, Zustand, Lieferumfang, zusätzliche Geräte und Zuzahlung.
+- Tauschrechner mit freien Modellen, Mengen und Zusatzgeräten; beide Sets online abgleichen, eigene Vergleichsangebote ergänzen, Preisband prüfen und faire Zuzahlung übernehmen.
 - Home-Assistant-Anmeldung, gemeinsamer Katalog und gemerkte Vergleiche.
 - JSON-Backups und CSV-Export.
 

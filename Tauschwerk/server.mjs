@@ -55,19 +55,19 @@ const server = http.createServer(async (req,res) => {
   const url = new URL(req.url, origin);
   const authenticated = shared || (req.headers.cookie || '').split(';').some(c=>c.trim()===`tw_session=${token}`);
   const send = (code,payload,headers={}) => {res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(payload));};
-  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.6.4'});
+  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'1.7.0'});
   if (!shared && url.pathname === '/' && url.searchParams.get('token') === token) {
     res.writeHead(302,{'Set-Cookie':`tw_session=${token}; HttpOnly; SameSite=Strict; Path=/`,'Location':'/','Cache-Control':'no-store'});return res.end();
   }
   if (!authenticated) return send(401,{error:'Bitte Tauschwerk.exe starten.'});
   lastSeen = Date.now();
-  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.6.4'});
+  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'1.7.0'});
   if (url.pathname === '/api/store' && req.method === 'GET') {const data=structuredClone(store);if(shared)delete data.ui;return send(200,data,{ETag:revision});}
   if (url.pathname === '/api/ping' && req.method === 'POST') return send(200,{ok:true});
   if(url.pathname==='/api/online/valuation'&&req.method==='POST'){
     if((shared?req.headers['x-tauschwerk-mode']:store.ui?.mode)!=='online')return send(409,{error:'Schalte zuerst auf den Online-Modus um.'});
     if(req.headers['content-type']?.split(';')[0]!=='application/json')return send(415,{error:'JSON erwartet.'});
-    let body='';try{for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>8192)return send(413,{error:'Gerätebeschreibung ist zu lang.'});}const input=JSON.parse(body);return send(200,await valueSet(input));}catch(error){return send(400,{error:error.message});}
+    let body='';try{for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>131072)return send(413,{error:'Gerätebeschreibung ist zu lang.'});}const input=JSON.parse(body);return send(200,await valueSet(input));}catch(error){return send(400,{error:error.message});}
   }
   if (url.pathname.startsWith('/api/online/') && req.method === 'GET') {
     if ((shared ? req.headers['x-tauschwerk-mode'] : store.ui?.mode) !== 'online') return send(409,{error:'Schalte zuerst auf den Online-Modus um.'});

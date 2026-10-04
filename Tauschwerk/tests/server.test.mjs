@@ -21,7 +21,7 @@ test('Lokaler Server: Zugriffsschutz, Persistenz, Backup und Neustart',async()=>
     data.ui={mode:'online'};assert.equal((await put(data)).status,200);
     assert.equal((await value('{}')).status,400);
     assert.equal((await value('{')).status,400);
-    assert.equal((await value('x'.repeat(9000))).status,413);
+    assert.equal((await value('x'.repeat(140000))).status,413);
     assert.equal((await value('{}',{'Content-Type':'text/plain'})).status,415);
     assert.equal((await fetch(s.base+'/api/online/device?url='+encodeURIComponent('https://127.0.0.1'),{headers:{Cookie:s.cookie}})).status,502);
     assert.equal((await fetch(s.base+'/../../catalog.json',{headers:{Cookie:s.cookie}})).status,404);

@@ -1,3 +1,14 @@
+# 1.7.0
+
+- Tauschrechner mit freien Modelleingaben, optionalem Katalog und klar getrennten Online-/Eigenwerten.
+- Beide Sets gemeinsam abgleichen, Seiten tauschen und die berechnete faire Zuzahlung übernehmen.
+- Mehrere gleiche Geräte sowie bis zu acht Zusatzgeräte mit eigenem Zustand und eigener Variante bewerten.
+- Online-bewertete Hauptgeräte mit optionalen eigenen Stückwerten für Zusatzgeräte kombinieren; Wertbasis bleibt sichtbar.
+- Eigene Vergleichsangebote ergänzen, wenn Preisquellen gesperrt sind; getrennte Bewertung von privaten, Händler- und selbst erfassten Preisen.
+- Gründe für ausgeschlossene Angebote anzeigen, Dubletten vor der Mindestanzahl entfernen, verneinten Lieferumfang erkennen und Händlerbasis nach Ausreißerprüfung erneut prüfen.
+- Dezimale Eurobeträge, fehlende Online-Werte, veraltete Antworten und laufende Preisabgleiche klar behandeln; Abbrechen möglich.
+- Ergebnisse mit Preisband, Quellen und Eingaben in der Historie speichern; bestehende Daten bleiben erhalten.
+
 # 1.6.4
 
 - Große Hersteller-Datenblätter, einschließlich Samsung, bis 24 MB entpackter Seitengröße einlesen.

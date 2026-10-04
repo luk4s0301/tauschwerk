@@ -26,3 +26,7 @@ Eine unter „Lokale Apps“ installierte Tauschwerk-App und die GitHub-App habe
 Die Home-Assistant-Anmeldung schützt die Oberfläche über Ingress. Die App öffnet keinen eigenen Port im Heimnetz und benötigt keine Home-Assistant-API oder Zugangsdaten. Alle berechtigten Home-Assistant-Nutzer teilen denselben Katalog. Änderungen anderer Geräte erscheinen nach etwa 15 Sekunden.
 
 Home-Assistant-Backups der App enthalten `/data`. Zusätzlich kannst du in Tauschwerk JSON-Backups exportieren. „Offline“ nutzt gespeicherte Daten ohne Internetrecherche; die Verbindung zu deinem HA-Server bleibt notwendig. Online-Suche und Preisrecherche benötigen Internetzugriff des Servers.
+
+## Tauschrechner
+
+Beide Modelle frei eingeben, Variante und Zustand wählen und „Beide Sets online abgleichen“ drücken. Zusatzgeräte haben eigene Varianten und Zustände. Händlerpreise, private Angebote und selbst erfasste Vergleichsangebote werden getrennt ausgewertet. Wenn Preisquellen Abrufe sperren, bieten die Quellenlinks die Suche im Browser; alternativ eigene Vergleichsangebote oder einen eigenen Setwert erfassen. Keine Zuzahlung, eigene Zuzahlung und erhaltene Zuzahlung sind getrennte Optionen. Der Rechner zeigt einen rechnerischen Wertausgleich und speichert die Quellen mit der Bewertung. Angebotspreise bleiben eine Orientierung, keine bestätigten Verkaufspreise.

@@ -51,11 +51,44 @@ test('different storage configurations are never silently pooled',()=>{
  const rows=[row(400,1,{title:'Galaxy S25 128GB'}),row(450,2),row(550,3,{title:'Galaxy S25 512GB'})];assert.equal(summarizePrices(rows,{...profile,variant:''}).estimate,null);
 });
 test('failed providers and missing accessories never create invented set prices',async()=>{
- const result=await valueSet({...profile,accessories:[{name:'Sony DualSense',quantity:2}]},async()=>{throw Error('Quelle gesperrt');});assert.equal(result.estimate,null);assert.equal(result.accessories.length,1);assert.equal(result.base.sources.length,3);assert.ok(result.base.sources.every(s=>s.status==='error'));
+ const result=await valueSet({...profile,accessories:[{name:'Sony DualSense',quantity:2}]},async()=>{throw Error('Quelle gesperrt');});assert.equal(result.estimate,null);assert.equal(result.accessories.length,1);assert.equal(result.base.sources.length,5);assert.ok(result.base.sources.filter(s=>s.status!=='browser').every(s=>s.status==='error'));
  await assert.rejects(valueSet({...profile,accessories:[{name:'x',quantity:100}]}),/Zubehör/);
 });
 test('complete set sums component quantities and observed ranges',async()=>{
  const fake=async url=>{const u=new URL(url);if(!u.hostname.includes('rebuy'))return {text:'',url};const name=u.searchParams.get('q').trim(),accessory=name==='Sony DualSense';const docs=[0,1,2].map(i=>({id:(accessory?200:100)+i,name:name+' color'+i,category_sanitized_name:'elektronik',product_sanitized_name:'device-'+i,variants:[{quantity:1,label:'A2',price:((accessory?40:300)+i*10)*100}]}));return {text:'<script id="ry-inject" type="application/json">'+JSON.stringify({productListViewDto:{searchResponse:{products:{docs}}}})+'</script>',url};};
  const result=await valueSet({name:'Test Device',condition:'Sehr gut',accessories:[{name:'Sony DualSense',quantity:2}]},fake);
  assert.equal(result.estimate.value,410);assert.equal(result.estimate.low,380);assert.equal(result.estimate.high,440);assert.equal(result.kind,'Händlerorientierung');
+});
+
+test('duplicates cannot turn one private offer into three observations',()=>{
+ const one=row(400,1);const s=summarizePrices([one,{...one},{...one}],profile);assert.equal(s.estimate,null);assert.equal(s.evidence.length,1);
+});
+test('negated delivery items are excluded with an explanation',()=>{
+ const rows=[1,2,3].map(i=>row(400,i,{description:'Ohne Rechnung, mit OVP und Kabel'}));const s=summarizePrices(rows,{...profile,contents:'Rechnung'});assert.equal(s.estimate,null);assert.ok(s.evidence.every(r=>r.exclusion==='Lieferumfang nicht bestätigt'));
+});
+test('dealer tier remains available when private candidates fail after outlier removal',()=>{
+ const rows=[row(10,1),row(400,2),row(99999,3),...[1,2,3].map(i=>row(500+i*10,i+3,{kind:'dealer-used'}))];assert.equal(summarizePrices(rows,profile).basis,'dealer-used');
+});
+test('own reference prices are isolated and validated instead of mixed with dealer or private prices',async()=>{
+ const comparisons=[1,2,3].map(i=>({title:'Galaxy S25 256GB',price:400+i*10,condition:'Sehr gut',description:'Mit Rechnung',url:'https://example.com/offer/'+i}));
+ const answer=await valueSet({...profile,comparisons},async()=>{throw Error('403');});assert.equal(answer.estimate.value,420);assert.equal(answer.kind,'Eigene Vergleichsangebote');assert.equal(answer.base.basis,'user-reference');
+ assert.equal(answer.base.estimate.confidence,'gering');assert.ok(answer.base.evidence.every(r=>r.source==='Eigener Vergleich'));
+ await assert.rejects(()=>valueSet({...profile,comparisons:[{...comparisons[0],url:'https://127.0.0.1/'}]}),/Lokale/);
+});
+test('extras use their own condition and variant; main-device quantity affects the full set',async()=>{
+ const fake=async url=>{const u=new URL(url);if(!u.hostname.includes('rebuy'))return {text:'',url};const query=u.searchParams.get('q').trim();const extra=query.startsWith('Sony');const docs=[1,2,3].map(i=>({id:(extra?200:100)+i,name:query,category_sanitized_name:'elektronik',product_sanitized_name:'device-'+i,variants:[{quantity:1,label:extra?'A3':'A2',price:(extra?50:300)*100}]}));return {text:'<script id="ry-inject">'+JSON.stringify({productListViewDto:{searchResponse:{products:{docs}}}})+'</script>',url};};
+ const answer=await valueSet({name:'Test Device',quantity:2,condition:'Sehr gut',accessories:[{name:'Sony DualSense',quantity:2,variant:'V2',condition:'Gut'}]},fake);
+ assert.equal(answer.estimate.value,700);assert.equal(answer.accessories[0].condition,'Gut');assert.equal(answer.accessories[0].variant,'V2');
+ await assert.rejects(()=>valueSet({...profile,quantity:0}),/Anzahl/);
+});
+
+test('tracking parameters do not turn one listing into several offers',()=>{
+ const rows=[row(400,1),row(400,1,{url:row(400,1).url+'?utm_source=browser'}),row(400,1,{url:row(400,1).url+'#details'})];const answer=summarizePrices(rows,profile);assert.equal(answer.estimate,null);assert.equal(answer.evidence.length,1);
+});
+
+test('explicit accessory unit values complete a set without claiming online verification',async()=>{
+ const comparisons=[1,2,3].map(i=>({title:'Galaxy S25 256GB',price:400+i*10,condition:'Sehr gut',description:'',url:'https://example.com/'+i}));let calls=0;
+ const answer=await valueSet({...profile,comparisons,accessories:[{name:'Sony DualSense',quantity:2,condition:'Gut',manualValue:50}]},async()=>{calls++;throw Error('403');});
+ assert.equal(answer.estimate.value,520);assert.equal(answer.kind,'Online & eigene Stückwerte');assert.equal(answer.accessories[0].basis,'manual');assert.equal(calls,3);
+ await assert.rejects(()=>valueSet({...profile,accessories:[{name:'Sony DualSense',quantity:2,manualValue:-1}]}),/Stückwert/);
 });

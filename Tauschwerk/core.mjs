@@ -17,8 +17,8 @@ export function parsePrice(value) {
 
 export function evaluateTrade(give, receive, cash = 0) {
   if (![give, receive, cash].every(Number.isFinite) || give < 0 || receive < 0) throw new Error('Ungültige Werte');
-  const fairCash = receive - give;
-  const difference = fairCash - cash;
+  const fairCash = Math.round((receive - give)*100)/100;
+  const difference = Math.round((fairCash - cash)*100)/100;
   const tolerance = Math.max(20, Math.max(give, receive) * 0.05);
   return { give, receive, cash, fairCash, difference, tolerance,
     verdict: Math.abs(difference) <= tolerance ? 'balanced' : difference > 0 ? 'positive' : 'negative' };

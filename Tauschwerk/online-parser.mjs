@@ -1,5 +1,5 @@
 // Parses fetched documents as data. No website scripts are executed.
-import {isExcludedSource} from './online-sources.mjs';
+import {isExcludedSource,classifySource} from './online-sources.mjs';
 import crypto from 'node:crypto';
 
 export function decodeEntities(s) {
@@ -21,6 +21,7 @@ const aliases = new Map(Object.entries({
   dimensions:'Abmessungen',abmessungen:'Abmessungen','size and weight':'Abmessungen und Gewicht','abmessungen und gewicht':'Abmessungen und Gewicht',
   'operating system':'Betriebssystem',os:'Betriebssystem',betriebssystem:'Betriebssystem',
   connectivity:'Verbindungen',wireless:'Funkverbindungen',anschlüsse:'Anschlüsse',ports:'Anschlüsse',
+  'cpu type':'Prozessor','cpu speed':'Prozessortakt','size (main display)':'Displaygröße','resolution (main display)':'Auflösung','technology (main display)':'Displaytechnologie','memory_(gb)':'Arbeitsspeicher','memory (gb)':'Arbeitsspeicher','storage (gb)':'Speicher','battery capacity (mah, typical)':'Akkukapazität','weight (g)':'Gewicht','cpu-typ':'Prozessor','cpu-geschwindigkeit':'Prozessortakt','speicher (gb)':'Speicher','arbeitsspeicher (gb)':'Arbeitsspeicher',
   camera:'Kamera',rear:'Rückkamera','rear camera':'Rückkamera','front camera':'Frontkamera',front:'Frontkamera',kamera:'Kamera',
   'refresh rate':'Bildwiederholrate',bildwiederholrate:'Bildwiederholrate',clock:'Takt',speed:'Takt',socket:'Sockel',sockel:'Sockel',
   manufacturer:'Hersteller',hersteller:'Hersteller',developer:'Entwickler',entwickler:'Entwickler',brand:'Marke',marke:'Marke',
@@ -133,10 +134,29 @@ export function extractImageCandidates(html,url,{name,provider='website'}={}) {
 
 export function extractDevice(html,url,{title='',provider='website',description=''}={}) {
   if(isExcludedSource(url)||provider==='wikipedia')throw new Error('Diese Quelle ist ausgeschlossen. Nutze eine Herstellerseite, Geizhals oder eine Fachquelle.');
-  const specs=[];const add=(key,value)=>{key=canonicalKey(key).slice(0,100);value=textOnly(value).slice(0,2000);if(!key||!value||key.length>100||/^(?:edit|bearbeiten|references|einzelnachweise|contents|inhalt|navigation|privacy|datenschutz)$/i.test(key))return;const existing=specs.find(s=>s.key.toLowerCase()===key.toLowerCase());if(existing){if(existing.value!==value&&!existing.value.includes(value)&&existing.value.length+value.length<2000)existing.value+=' / '+value;}else if(specs.length<100)specs.push({key,value,source:url});};
+  const specs=[],conflicts=[];
+  const ignored=/^(?:edit|bearbeiten|references|einzelnachweise|contents|inhalt|navigation|privacy|datenschutz|price|preis|buy|kaufen|property|rating|bewertung|review|test score)$/i;
+  const add=(key,value)=>{
+    const unit=String(key).match(/\((GB|TB|g|mAh)(?:,\s*typical)?\)/i)?.[1];
+    key=canonicalKey(key);value=textOnly(value);
+    if(unit&&/^\d+(?:[.,]\d+)?$/.test(value))value+=' '+unit;
+    if(!key||!value||key.length>100||value.length>2000||ignored.test(key)||/^(?:-|–|n\/a|unknown|unbekannt)$/i.test(value))return;
+    if(conflicts.some(c=>c.key===key))return;
+    const existing=specs.find(s=>s.key.toLowerCase()===key.toLowerCase());
+    if(existing){
+      const norm=v=>v.toLowerCase().replace(/\s+/g,'');
+      if(norm(existing.value)!==norm(value)){
+        conflicts.push({key,values:[existing.value,value],source:url});specs.splice(specs.indexOf(existing),1);
+      }
+    }else if(specs.length<100)specs.push({key,value,source:url});
+  };
+  const tree=parseTree(html);
+  const visibleTitle=cleanNode([...descendants(tree,'h1')].find(n=>!ancestor(n,'nav'))||{children:[]});
+  const wanted=title||visibleTitle;
+  const related=node=>{let n=node;while(n){if(['nav','footer','aside'].includes(n.tag)||/(?:^|[\s_-])(?:related|recommendations?|recommended|accessories|compare|comparison|navigation)(?:$|[\s_-])/i.test(attr(n,'class')+' '+attr(n,'id')))return true;n=n.parent;}return false;};
   let product;
   for(const script of html.matchAll(/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
-    try{const products=flattenJSON(JSON.parse(script[1]));if(products.length){product=products.sort((a,b)=>((b.additionalProperty||b.specification)?1:0)-((a.additionalProperty||a.specification)?1:0))[0];break;}}catch{}
+    try{const products=flattenJSON(JSON.parse(script[1]));const matching=products.filter(p=>!wanted||imageModelMatches(wanted,p.name||''));if(matching.length){product=matching.sort((a,b)=>((b.additionalProperty||b.specification)?1:0)-((a.additionalProperty||a.specification)?1:0))[0];break;}}catch{}
   }
   if(product){
     title=product.name || title;description=textOnly(product.description || description).slice(0,1500);
@@ -144,16 +164,15 @@ export function extractDevice(html,url,{title='',provider='website',description=
     if(product.brand)add('Hersteller',schemaValue(product.brand));
     for(const [key,label] of Object.entries({model:'Modell',weight:'Gewicht',height:'Höhe',width:'Breite',depth:'Tiefe',color:'Farbe',sku:'Modellnummer',gtin13:'EAN',material:'Material'}))if(product[key]!==undefined)add(label,schemaValue(product[key]));
   }
-  const tree=parseTree(html);
   {
     // Definition lists used by manufacturer support and specification pages.
     for(const dl of descendants(tree,'dl')){
       if(provider==='gpu-monkey'&&/\bkpis\b/.test(attr(dl,'class')))continue;
       for(const dt of descendants(dl,'dt')){
-        if(ancestor(dt,'dl')!==dl)continue;
+        if(ancestor(dt,'dl')!==dl||related(dt))continue;
         const siblings=dt.parent.children;const dd=siblings.slice(siblings.indexOf(dt)+1).find(n=>n.tag==='dd'||n.tag==='dt');
         const label=cleanNode(dt);
-        if(dd?.tag==='dd'&&label.length<=100&&(aliases.has(label.toLowerCase().replace(/:$/,''))||['gpu-monkey','geizhals'].includes(provider)))add(provider==='gpu-monkey'&&label==='Memory'?'Grafikspeicher':label,cleanNode(dd));
+        if(dd?.tag==='dd'&&label.length<=100&&(aliases.has(label.toLowerCase().replace(/:$/,''))||provider==='manufacturer'||classifySource(url).kind==='database'))add(provider==='gpu-monkey'&&label==='Memory'?'Grafikspeicher':label,cleanNode(dd));
       }
     }
   }
@@ -169,38 +188,50 @@ export function extractDevice(html,url,{title='',provider='website',description=
   const nanoSections=provider==='nanoreview'?[...html.matchAll(/<table\b[^>]*class=["'][^"']*specs-table[^"']*["'][^>]*>/gi)].map(m=>{const before=html.slice(0,m.index);return textOnly([...before.matchAll(/<h[23]\b[^>]*>([\s\S]*?)<\/h[23]>/gi)].at(-1)?.[1]||'');}):[];
   let nanoIndex=0;
   for(const table of candidates){
+    if(related(table))continue;
     if(provider==='nanoreview'&&!/\bspecs-table\b/.test(attr(table,'class')))continue;
-    const section=nanoSections[nanoIndex++]||'';
-    for(const row of descendants(table,'tr')){if(ancestor(row,'table')!==table)continue;const cells=(row.children||[]).filter(n=>['td','th'].includes(n.tag));if(cells.length!==2||cells.every(c=>c.tag==='th'))continue;let key=cleanNode(cells[0]);const value=cleanNode(cells[1]);if(provider==='nanoreview'&&section&&/^(?:type|size|capacity|resolution|aperture|sensor|video recording|frequency|cores)$/i.test(key))key=canonicalKey(section)+' · '+canonicalKey(key);if(key.length<=100&&key.length>0&&value&&!/^(?:price|preis|buy|kaufen|property)$/i.test(key))add(key,value);}
+    const tableSection=nanoSections[nanoIndex++]||'';
+    for(const row of descendants(table,'tr')){if(ancestor(row,'table')!==table)continue;const cells=(row.children||[]).filter(n=>['td','th'].includes(n.tag));let section=tableSection;if(provider==='gsmarena'){const group=cells.find(c=>c.tag==='th');if(group)section=cleanNode(group);const data=cells.filter(c=>c.tag==='td');if(data.length===2){cells.splice(0,cells.length,...data);table.specSection=section||table.specSection;section=table.specSection||'';}}if(cells.length!==2||cells.every(c=>c.tag==='th'))continue;let key=cleanNode(cells[0]);const value=cleanNode(cells[1]);if(provider==='gsmarena'&&section)key=canonicalKey(section)+' · '+canonicalKey(key||'Daten');if(provider==='nanoreview'&&section&&/^(?:type|size|capacity|resolution|aperture|sensor|video recording|frequency|cores)$/i.test(key))key=canonicalKey(section)+' · '+canonicalKey(key);if(key.length<=100&&key.length>0&&value&&!/^(?:price|preis|buy|kaufen|property)$/i.test(key))add(key,value);}
   }
   // Accessible div tables (used by official console and accessory data sheets).
   let accessibleTable;
   for(const row of descendants(tree,'div')){
-    if(attr(row,'role')!=='row')continue;
+    if(attr(row,'role')!=='row'||related(row))continue;
     const cells=(row.children||[]).filter(n=>['cell','rowheader','columnheader'].includes(attr(n,'role')));
     let container=row.parent;while(container&&!attr(container,'role').split(/\s+/).includes('table'))container=container.parent;
     if(cells.length!==2||!container)continue;
     accessibleTable||=container;if(container!==accessibleTable)continue;
     add(cleanNode(cells[0]),cleanNode(cells[1]));
   }
+  // Samsung and other manufacturer pages use labelled spec blocks, not HTML tables.
+  for(const tag of ['li','div'])for(const row of descendants(tree,tag)){
+    if(related(row)||ancestor(row,'table')||ancestor(row,'dl'))continue;
+    const children=(row.children||[]).filter(n=>n.tag!=='#text');
+    if(children.length!==2)continue;
+    const [label,value]=children;
+    const labelClass=attr(label,'class'),valueClass=attr(value,'class');
+    if(!/(?:spec.*(?:title|name|label)|(?:title|name|label).*spec)/i.test(labelClass)||!/(?:spec.*(?:value|detail|content|text|desc)|(?:value|detail|content|text|desc).*spec)/i.test(valueClass))continue;
+    add(cleanNode(label),cleanNode(value));
+  }
   // Public manufacturer support pages often use headings and lists rather than tables.
   if(!['nanoreview','gpu-monkey','cpu-monkey'].includes(provider)) {
     const headings=[...html.matchAll(/<h([234])\b[^>]*>([\s\S]*?)<\/h\1>/gi)];
     for(let i=0;i<headings.length;i++){
       const m=headings[i],key=canonicalKey(m[2]);
+      if(/^(?:technische daten|technical specifications|specifications)$/i.test(textOnly(m[2])))continue;
       if(!aliases.has(textOnly(m[2]).toLowerCase().trim())&&!/^(?:technische daten|technical specifications|specifications|anschlüsse|schutz vor wasser und staub|drahtlose technologien)$/i.test(textOnly(m[2])))continue;
       const section=html.slice(m.index+m[0].length,headings[i+1]?.index ?? Math.min(html.length,m.index+15000));
-      const clean=textOnly(section);if(clean&&clean.length<12000)add(key,clean);
+      const clean=textOnly(section);if(clean&&clean.length<=2000&&!/<table|<dl|spec.*(?:title|label)/i.test(section)&&!specs.some(s=>s.key===key))add(key,clean);
     }
   }
   const pageTitle=textOnly(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '');
   if(accessibleTable){const productName=specs.find(s=>s.key==='Produktname')?.value;if(productName&&/technische spezifikationen|technical specifications/i.test(pageTitle))title=productName;}
-  title=textOnly(title || (provider==='manufacturer'?pageTitle:'') || cleanNode([...descendants(tree,'h1')][0] || {children:[]}) || pageTitle).replace(/\s*[–|]\s*Apple Support.*$/i,'').replace(/\s*;?\s*(?:Benchmarks?\s*(?:&|and)\s*Specs|Benchmark and Specs).*$/i,'').slice(0,300);
+  title=textOnly(title || visibleTitle || pageTitle).replace(/\s*[–|]\s*Apple Support.*$/i,'').replace(/\s*;?\s*(?:Benchmarks?\s*(?:&|and)\s*Specs|Benchmark and Specs).*$/i,'').slice(0,300);
   if(!title)throw new Error('Auf dieser Seite wurde kein Gerätename gefunden. Versuche ein direktes Datenblatt.');
-  if(!specs.length)throw new Error('Die Seite liefert keine auslesbaren technischen Merkmale. Versuche eine andere Quelle oder ergänze das Gerät manuell.');
+  if(!specs.some(s=>!['Hersteller','Marke','Modell','Modellnummer','EAN','Farbe','Website','Veröffentlichung'].includes(s.key)))throw new Error('Die Seite liefert keine auslesbaren technischen Merkmale. Versuche eine andere Quelle oder ergänze das Gerät manuell.');
   const brand=guessBrand(title,specs),category=guessCategory(title,description,specs,url);
   const retrievedAt=new Date().toISOString();
   return {id:'web-'+crypto.createHash('sha256').update(url).digest('hex').slice(0,20),name:title,brand,category,source:url,sourceType:provider,
     specs,notes:description?description+'\n\nAutomatisch aus der verlinkten Quelle übernommen. Modell und Varianten vor einem Tausch prüfen.':'Automatisch aus der verlinkten Quelle übernommen. Modell und Varianten prüfen.',value:null,offers:[],checked:retrievedAt.slice(0,10),
-    provenance:{provider,retrievedAt,attribution:'Quelle: '+new URL(url).hostname,needsReview:true}};
+    provenance:{provider,retrievedAt,attribution:'Quelle: '+classifySource(url).name+' · '+new URL(url).hostname,conflicts,needsReview:true}};
 }

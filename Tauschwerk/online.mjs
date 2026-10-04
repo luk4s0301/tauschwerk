@@ -1,7 +1,7 @@
 import {extractDevice,imageModelMatches} from './online-parser.mjs';
 import {loadProductImage} from './device-images.mjs';
 import {fetchPublicText,validateRemoteURL} from './remote.mjs';
-import {searchWeb,searchLaptops,rankResults} from './online-search.mjs';
+import {searchWeb,searchLaptops,rankResults,matchesQuery} from './online-search.mjs';
 import {sourceOptions,manufacturers,classifySource,deviceKinds,detectDeviceKind,specialistSources} from './online-sources.mjs';
 import {searchCatalog,searchManufacturerCatalog} from './online-catalogs.mjs';
 export {fetchPublicText,validateRemoteURL,isPublicAddress} from './remote.mjs';
@@ -16,8 +16,8 @@ export async function searchOnline(query,language='all',{source='all',manufactur
   if(['all','web','manufacturer'].includes(source))tasks.push({label:'Websuche',run:()=>searchWeb(query,language,{source,manufacturer},fetchText)});
   if(source==='laptopmedia'||source==='all'&&resolvedKind==='laptops')tasks.push({label:'LaptopMedia',run:()=>searchLaptops(query,fetchText)});
   for(const specialist of specialistSources.filter(s=>s.id!=='laptopmedia')){
-    // Automatic search uses direct catalogs; rate-limited sources remain selectable.
-    if(source===specialist.id||source==='all'&&['geizhals','nanoreview','cpu-monkey','gpu-monkey','rtings'].includes(specialist.id)&&specialist.kinds.includes(resolvedKind))tasks.push({label:specialist.name,run:()=>searchCatalog(specialist.id,query,language,fetchText)});
+    // Search every relevant specialist; recover unavailable direct catalogs with domain-restricted web search.
+    if(source===specialist.id||source==='all'&&specialist.kinds.includes(resolvedKind))tasks.push({label:specialist.name,run:async()=>{try{const found=await searchCatalog(specialist.id,query,language,fetchText);if(found.results.length)return found;}catch{}return searchWeb(query,language,{domains:specialist.domains},fetchText);}});
   }
   if(['all','manufacturer'].includes(source))tasks.push({label:'Herstellerkatalog',run:()=>searchManufacturerCatalog(query,language,manufacturer,fetchText)});
   const responses=await Promise.allSettled(tasks.map(t=>t.run()));
@@ -27,19 +27,21 @@ export async function searchOnline(query,language='all',{source='all',manufactur
   const warnings=[...new Set([...fulfilled.flatMap(r=>r.warnings || []),...responses.flatMap((r,i)=>r.status==='rejected'?[tasks[i].label+': '+r.reason.message]:[])])];
   return {results,warnings,query,source,manufacturer,kind:resolvedKind,searchedSources:tasks.map(t=>t.label)};
 }
-async function deviceDocument(input) {
+async function deviceDocument(input,fetchText=fetchPublicText) {
   const url=validateRemoteURL(input);
-  const response=await fetchPublicText(url.href);
+  const response=await fetchText(url.href);
   if(/(?:cf-turnstile|challenge-form|anomaly-modal|verify you are human|captcha)/i.test(response.text)&&!/<table|lm-specs-table|application\/ld\+json/i.test(response.text))throw new Error('Diese Quelle verlangt eine Browser-Prüfung. Öffne die Seite im Browser oder wähle eine andere Quelle.');
-  const source=classifySource(response.url);
-  return {html:response.text,source:response.url,provider:source.kind==='manufacturer'?'manufacturer':specialistSources.find(s=>s.name===source.name)?.id||'website'};
+  const source=classifySource(response.url||url.href);
+  return {html:response.text,source:response.url||url.href,provider:source.kind==='manufacturer'?'manufacturer':specialistSources.find(s=>s.name===source.name)?.id||'website'};
 }
-export async function retrieveOnline(input) {
-  const doc=await deviceDocument(input);
+export async function retrieveOnline(input,{expectedModel=''}={},fetchText=fetchPublicText) {
+  const doc=await deviceDocument(input,fetchText);
   const device=extractDevice(doc.html,doc.source,{title:doc.title,provider:doc.provider});
+  if(expectedModel&&!matchesQuery({title:device.brand+' '+device.name,url:'',description:''},expectedModel))throw new Error('Das geladene Datenblatt gehört nicht eindeutig zum gesuchten Modell. Wähle eine Quelle für die genaue Modellvariante.');
   const image=await loadProductImage(doc.html,doc.source,device,doc.provider);
   if(image)device.image=image;
   const warnings=['Die Merkmale wurden automatisch aus der Webseite ausgelesen. Prüfe Modell, Einheiten und Varianten vor der Übernahme.'];
+  if(device.provenance.conflicts?.length)warnings.push('Widersprüchliche Angaben wurden ausgelassen: '+device.provenance.conflicts.map(c=>c.key).join(', ')+'. Prüfe die konkrete Variante auf der Originalseite.');
   if(!image)warnings.push('Diese Quelle liefert kein passendes ladbares Produktbild. Du kannst im Geräte-Editor nach einem Bild aus weiteren Quellen suchen.');
   return {device,warnings};
 }

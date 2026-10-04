@@ -1,13 +1,16 @@
 import crypto from 'node:crypto';
 import {fetchPublicText,validateRemoteURL} from './remote.mjs';
 import {textOnly,decodeEntities} from './online-parser.mjs';
-import {classifySource,manufacturers,detectManufacturer,domainMatches,isExcludedSource} from './online-sources.mjs';
+import {classifySource,manufacturers,detectManufacturer,domainMatches,isExcludedSource,specialistSources} from './online-sources.mjs';
 
-const normalize=s=>String(s).normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const normalize=s=>String(s).replace(/\+/g,' plus ').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 export function matchesQuery(row,query){
   const tokens=normalize(query).split(' ').filter(t=>t.length>1&&!['specs','specifications','technische','daten','laptop','notebook','gen','generation'].includes(t));
   const haystack=normalize(row.title+' '+(row.description || '')+' '+row.url);
   const identity=normalize(row.title+' '+row.url+' '+(row.modelSeries || ''));
+  const variants=['pro','max','ultra','plus','mini','lite','fe'];
+  const identityTokens=identity.split(' ');
+  if(variants.some(t=>identityTokens.includes(t)!==tokens.includes(t)))return false;
   const modelTokens=tokens.filter(t=>/\d/.test(t));
   return tokens.length>0&&modelTokens.every(t=>identity.split(' ').includes(t))&&tokens.filter(t=>haystack.includes(t)||identity.includes(t)).length>=Math.ceil(tokens.length*0.7);
 }
@@ -15,7 +18,7 @@ export function result(title,url,description,engine){
   if(isExcludedSource(url))return null;
   try{url=validateRemoteURL(url).href;}catch{return null;}
   const source=classifySource(url);
-  return {id:'search-'+crypto.createHash('sha256').update(url).digest('hex').slice(0,20),title:textOnly(title).slice(0,300),description:textOnly(description).slice(0,700),url,provider:source.kind,sourceName:source.name,manufacturer:source.manufacturer,host:source.host,engine,isPDF:/\.pdf(?:$|[?#])/i.test(url)};
+  return {id:'search-'+crypto.createHash('sha256').update(url).digest('hex').slice(0,20),title:textOnly(title).slice(0,300),description:textOnly(description).slice(0,700),url,provider:source.kind,sourceName:source.name,manufacturer:source.manufacturer,host:source.host,engine,browserOnly:source.kind==='website'||Boolean(specialistSources.find(s=>s.name===source.name)?.browserOnly),isPDF:/\.pdf(?:$|[?#])/i.test(url)};
 }
 function xmlValue(block,tag){const raw=block.match(new RegExp('<'+tag+'(?:\\s[^>]*)?>([\\s\\S]*?)<\\/'+tag+'>','i'))?.[1] || '';return decodeEntities(raw.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1'));}
 export function parseBingRSS(xml){
@@ -44,7 +47,7 @@ export function rankResults(rows,query,{source='all',manufacturer='all'}={}){
     if(manufacturer!=='all'&&row.provider!=='manufacturer'&&!matchesQuery(row,manufacturers.find(m=>m.id===manufacturer)?.id || ''))continue;
     const key=canonicalURL(row.url);if(!unique.has(key))unique.set(key,row);
   }
-  const score=r=>(r.provider==='manufacturer'?40:r.sourceName==='Geizhals'?35:r.provider==='database'?25:10)+(/spec|tech|daten|psref|support|laptop-specs/i.test(r.title+' '+r.url)?15:0)+(r.url.includes('/laptop-specs/')?20:0)+(normalize(r.title).includes(normalize(query))?20:0)-(r.isPDF?10:0);
+  const score=r=>(r.provider==='manufacturer'?120:r.sourceName==='Geizhals'?90:r.provider==='database'?60:0)+(/spec|tech|daten|psref|support|laptop-specs/i.test(r.title+' '+r.url)?15:0)+(r.url.includes('/laptop-specs/')?20:0)+(normalize(r.title).includes(normalize(query))?20:0)-(r.isPDF?10:0);
   return [...unique.values()].sort((a,b)=>score(b)-score(a)).slice(0,32);
 }
 export async function searchWeb(query,language,{source='all',manufacturer='all',domains=[]}={},fetchText=fetchPublicText){

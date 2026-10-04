@@ -1,7 +1,7 @@
 // Shared source labels and domain classification; no credentials or network calls.
 export const manufacturers = [
   {id:'apple',name:'Apple',domains:['apple.com'],models:'iphone|ipad|macbook|imac|airpods|apple watch'},
-  {id:'samsung',name:'Samsung',domains:['samsung.com'],models:'galaxy'},
+  {id:'samsung',name:'Samsung',domains:['samsung.com','samsung.de'],models:'galaxy'},
   {id:'lenovo',name:'Lenovo',domains:['lenovo.com','lenovo.com.cn'],models:'thinkpad|thinkbook|ideapad|yoga|legion'},
   {id:'dell',name:'Dell / Alienware',domains:['dell.com'],models:'alienware|xps|latitude|inspiron'},
   {id:'hp',name:'HP',domains:['hp.com'],models:'elitebook|probook|spectre|victus|omen'},
@@ -59,6 +59,11 @@ export const specialistSources=[
   {id:'gpu-monkey',name:'GPU-Monkey',domains:['gpu-monkey.com'],kinds:['gpu']},
   {id:'techpowerup',name:'TechPowerUp',domains:['techpowerup.com'],kinds:['gpu','cpu']},
   {id:'rtings',name:'RTINGS',domains:['rtings.com'],kinds:['tv','audio','cameras','peripherals','home','laptops']},
+  {id:'notebookcheck',name:'Notebookcheck',domains:['notebookcheck.net','notebookcheck.com'],kinds:['phones','laptops','watches']},
+  {id:'devicespecifications',name:'DeviceSpecifications',domains:['devicespecifications.com'],kinds:['phones','tv']},
+  {id:'displayspecifications',name:'DisplaySpecifications',domains:['displayspecifications.com'],kinds:['tv']},
+  {id:'prad',name:'PRAD',domains:['prad.de'],kinds:['tv'],browserOnly:true},
+  {id:'dpreview',name:'DPReview',domains:['dpreview.com'],kinds:['cameras'],browserOnly:true},
   {id:'laptopmedia',name:'LaptopMedia',domains:['laptopmedia.com'],kinds:['laptops']}
 ];
 export const sourceOptions = [
@@ -68,7 +73,7 @@ export const sourceOptions = [
 const databases=[...specialistSources.flatMap(s=>s.domains.map(d=>[d,s.name])),['notebookcheck.net','Notebookcheck'],['notebookcheck.com','Notebookcheck'],['devicespecifications.com','DeviceSpecifications']];
 export function domainMatches(host,domain){return host===domain||host.endsWith('.'+domain);}
 export function classifySource(input){
-  let host;try{host=new URL(input).hostname.toLowerCase();}catch{return {kind:'website',name:'Webquelle',host:''};}
+  let host;try{host=new URL(input).hostname.toLowerCase().replace(/\.$/,'');}catch{return {kind:'website',name:'Webquelle',host:''};}
   const maker=manufacturers.find(m=>m.domains.some(d=>domainMatches(host,d)));
   if(maker)return {kind:'manufacturer',name:maker.name,manufacturer:maker.id,host};
   const database=databases.find(([domain])=>domainMatches(host,domain));
@@ -95,5 +100,5 @@ export function detectDeviceKind(query){
 }
 
 export function isExcludedSource(input){
-  try{const host=new URL(input).hostname.toLowerCase();return ['wikipedia.org','wikimedia.org','wikidata.org'].some(d=>domainMatches(host,d));}catch{return false;}
+  try{const host=new URL(input).hostname.toLowerCase().replace(/\.$/,'');return ['wikipedia.org','wikimedia.org','wikidata.org'].some(d=>domainMatches(host,d));}catch{return false;}
 }

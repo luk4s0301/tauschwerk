@@ -1,0 +1,20 @@
+{
+  "name": "Tauschwerk",
+  "version": "1.6.2",
+  "slug": "tauschwerk",
+  "description": "Ger\u00e4te vergleichen, Tausche bewerten und Vergleiche auf allen Ger\u00e4ten merken.",
+  "url": "https://github.com/luk4s0301/tauschwerk",
+  "arch": [
+    "amd64",
+    "aarch64"
+  ],
+  "startup": "application",
+  "boot": "auto",
+  "init": false,
+  "ingress": true,
+  "ingress_port": 8099,
+  "panel_icon": "mdi:swap-horizontal",
+  "panel_title": "Tauschwerk",
+  "options": {},
+  "schema": {}
+}

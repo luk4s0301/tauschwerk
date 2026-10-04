@@ -1,0 +1,28 @@
+# Tauschwerk für Home Assistant
+
+Geräte vergleichen, Tausche bewerten und denselben Katalog auf PC, Handy und Tablet nutzen. Unterstützt Home Assistant OS und Home Assistant Supervised auf amd64 und aarch64. Home Assistant Container und Core bieten keinen App-Store.
+
+## Installation aus GitHub
+
+1. In Home Assistant **Einstellungen → Apps → App-Store** öffnen (bei älteren Versionen **Add-ons → Add-on-Store**).
+2. Im Menü oben rechts **Repositories** wählen und `https://github.com/luk4s0301/tauschwerk` hinzufügen.
+3. Den Store bei Bedarf neu laden, **Tauschwerk** auswählen und **Installieren** drücken. Home Assistant baut das Image auf deinem Server; der erste Build kann einige Minuten dauern.
+4. Die App starten und **In der Seitenleiste anzeigen** einschalten. Unter **Weboberfläche öffnen** erreichst du Tauschwerk.
+
+[Repository in Home Assistant hinzufügen](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fluk4s0301%2Ftauschwerk)
+
+## Updates
+
+Im App-Store-Menü **Nach Updates suchen** wählen. Sobald eine höhere Version im Repository veröffentlicht ist, erscheint bei Tauschwerk **Aktualisieren**. Vor dem Update ein Backup erstellen, aktualisieren und anschließend die Oberfläche neu laden. Es müssen keine Dateien über Samba kopiert werden.
+
+Die Datenbank liegt unter `/data/tauschwerk.json` im dauerhaften App-Speicher. Updates und Neustarts erhalten diesen Speicher. Die GitHub-Installation enthält nur den allgemeinen Startkatalog, keine persönlichen Kataloge oder Zugangsdaten. Bestehende Daten werden beim Start zuerst geladen. Online-Datenblätter bleiben bis zu 24 Stunden im gemeinsamen Zwischenspeicher. Browseransicht und aktueller Vergleich sind pro Browser getrennt.
+
+## Wechsel von einer lokalen Installation
+
+Eine unter „Lokale Apps“ installierte Tauschwerk-App und die GitHub-App haben unterschiedliche Speicher. Exportiere in der bisherigen App unter **Daten & Hilfe → Backup exportieren** dein JSON-Backup. Installiere dann die GitHub-App und importiere dort das Backup. Prüfe Geräte, Tausche und gemerkte Vergleiche, bevor du die alte App entfernst. Die alte App erst nach erfolgreicher Übernahme deinstallieren; Deinstallation kann deren App-Speicher löschen.
+
+## Zugang und Sicherungen
+
+Die Home-Assistant-Anmeldung schützt die Oberfläche über Ingress. Die App öffnet keinen eigenen Port im Heimnetz und benötigt keine Home-Assistant-API oder Zugangsdaten. Alle berechtigten Home-Assistant-Nutzer teilen denselben Katalog. Änderungen anderer Geräte erscheinen nach etwa 15 Sekunden.
+
+Home-Assistant-Backups der App enthalten `/data`. Zusätzlich kannst du in Tauschwerk JSON-Backups exportieren. „Offline“ nutzt gespeicherte Daten ohne Internetrecherche; die Verbindung zu deinem HA-Server bleibt notwendig. Online-Suche und Preisrecherche benötigen Internetzugriff des Servers.

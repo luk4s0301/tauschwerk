@@ -22,3 +22,17 @@ npm start
 Die ausgegebene lokale URL im Browser öffnen. Prüfungen: `npm test`.
 
 Die [Anleitung](Tauschwerk/README.md) beschreibt Windows-Starter, Home-Assistant-Installation und Grenzen der Online-Recherche. Persönliche Daten, Zugangsdaten, Backups und die lokale Server-Konfiguration sind vom Repository ausgeschlossen.
+
+## In Home Assistant installieren
+
+[Repository in Home Assistant hinzufügen](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fluk4s0301%2Ftauschwerk)
+
+Oder unter **Einstellungen → Apps → App-Store → ⋮ → Repositories** diese URL hinzufügen:
+
+```text
+https://github.com/luk4s0301/tauschwerk
+```
+
+Danach **Tauschwerk → Installieren → Starten → In der Seitenleiste anzeigen**. Neue Versionen werden über **Nach Updates suchen** und **Aktualisieren** eingespielt. Benötigt Home Assistant OS oder Supervised auf amd64/aarch64. Der erste Build läuft auf deinem Server und kann einige Minuten dauern.
+
+Bereits lokal installiert? Vor dem Wechsel das JSON-Backup aus der alten App exportieren und in der GitHub-App importieren: Beide Installationen haben getrennte Speicher. [Installation, Updates und Datenübernahme](Tauschwerk/DOCS.md).

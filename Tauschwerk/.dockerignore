@@ -1,0 +1,16 @@
+*
+!package.json
+!server.mjs
+!server-policy.mjs
+!core.mjs
+!online.mjs
+!online-parser.mjs
+!remote.mjs
+!device-images.mjs
+!market-value.mjs
+!online-search.mjs
+!online-sources.mjs
+!online-catalogs.mjs
+!catalog.json
+!public/
+!public/**

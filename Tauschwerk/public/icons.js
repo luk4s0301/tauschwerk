@@ -1,4 +1,5 @@
 const paths = {
+  swivo:'M17 5H9a3.5 3.5 0 0 0 0 7h6a3.5 3.5 0 0 1 0 7H7M14 2l3 3-3 3M10 16l-3 3 3 3',
   swap:'M4 7h16m-5-5 5 5-5 5M20 17H4m5-5-5 5 5 5',
   compare:'M4 4h6v16H4zM14 4h6v16h-6z',
   grid:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',

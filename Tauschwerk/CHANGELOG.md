@@ -1,3 +1,9 @@
+# 2.1.0
+
+- Tauschwerk heißt jetzt Swivo: neue Wortmarke mit S-Symbol aus zwei Tauschrouten und dem Claim „Deine Technik. Dein nächster Deal.“
+- Neuer Name in Navigation, Browser-Titel, Start-/Fehleranzeigen, Hilfe, Backups, CSV-Export und Home-Assistant-App samt Seitenleistenname.
+- Repository-Adresse, HA-App-ID, Datenbankpfade, Schnittstellen und gespeicherte Browserauswahl bleiben kompatibel. Bestehende Installation normal aktualisieren.
+
 # 2.0.0
 
 - Neue helle Gestaltung mit Violett, Korallakzenten, transparenten Glasflächen und schwebender dunkler Navigation.

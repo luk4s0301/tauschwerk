@@ -1,4 +1,8 @@
-# Tauschwerk 1.6
+# Swivo
+
+**Deine Technik. Dein nächster Deal.**
+
+Ab 2.1.0 heißt Tauschwerk Swivo. Bestehende Installationen lassen sich normal aktualisieren; technische Ordnernamen und der Windows-Starter bleiben kompatibel.
 
 Lokale Windows-App zum Vergleichen von Geräten und Bewerten von Tauschangeboten. Zwei Datenmodi: eigene Offline-Datenbank oder Online-Recherche mit anschließendem Offline-Import.
 
@@ -27,7 +31,7 @@ Bestehende Geräte: Im Online-Modus sucht die App fehlende Bilder angezeigter Ge
 
 Zusätzlich gibt es eine Home-Assistant-App für PC, Handy und Tablet. Sie nutzt die bestehende Home-Assistant-Anmeldung über Ingress und speichert den Katalog und deine Tausche gemeinsam auf deinem Server. „Vergleich merken“ speichert eine Auswahl einschließlich Gerätedaten für später; „Gemerkte Vergleiche“ öffnet sie auf anderen Geräten. Online-Datenblätter werden bis zu 24 Stunden zentral zwischengespeichert.
 
-Die App lässt sich direkt über das GitHub-Repository installieren und aktualisieren. Unter **Einstellungen → Apps → App-Store → ⋮ → Repositories** `https://github.com/luk4s0301/tauschwerk` hinzufügen, Tauschwerk installieren und starten. Updates erscheinen nach „Nach Updates suchen“. Die [Home-Assistant-Anleitung](DOCS.md) erklärt Installation und Übernahme einer bisherigen lokalen App per JSON-Backup. Bei einer GitHub-Neuinstallation wird ausschließlich der allgemeine Startkatalog mitgeliefert.
+Die App lässt sich direkt über das GitHub-Repository installieren und aktualisieren. Unter **Einstellungen → Apps → App-Store → ⋮ → Repositories** `https://github.com/luk4s0301/tauschwerk` hinzufügen, Swivo installieren und starten. Updates erscheinen nach „Nach Updates suchen“. Die [Home-Assistant-Anleitung](DOCS.md) erklärt Installation und Übernahme einer bisherigen lokalen App per JSON-Backup. Bei einer GitHub-Neuinstallation wird ausschließlich der allgemeine Startkatalog mitgeliefert.
 
 Das lokale Installationspaket kann weiterhin mit `node build-home-assistant.mjs` erstellt werden. Es bleibt außerhalb von Git und übernimmt den lokalen PC-Katalog nur beim ersten Start einer neuen lokalen App.
 

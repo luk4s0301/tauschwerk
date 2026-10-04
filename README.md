@@ -1,4 +1,6 @@
-# Tauschwerk
+# Swivo
+
+**Deine Technik. Dein nächster Deal.**
 
 Geräte vergleichen und Tauschangebote bewerten: als lokale Windows-App oder mit gemeinsamer Datenbank auf einem Home-Assistant-Server.
 
@@ -34,6 +36,6 @@ Oder unter **Einstellungen → Apps → App-Store → ⋮ → Repositories** die
 https://github.com/luk4s0301/tauschwerk
 ```
 
-Danach **Tauschwerk → Installieren → Starten → In der Seitenleiste anzeigen**. Neue Versionen werden über **Nach Updates suchen** und **Aktualisieren** eingespielt. Benötigt Home Assistant OS oder Supervised auf amd64/aarch64. Der erste Build läuft auf deinem Server und kann einige Minuten dauern.
+Danach **Swivo → Installieren → Starten → In der Seitenleiste anzeigen**. Neue Versionen werden über **Nach Updates suchen** und **Aktualisieren** eingespielt. Benötigt Home Assistant OS oder Supervised auf amd64/aarch64. Der erste Build läuft auf deinem Server und kann einige Minuten dauern.
 
 Bereits lokal installiert? Vor dem Wechsel das JSON-Backup aus der alten App exportieren und in der GitHub-App importieren: Beide Installationen haben getrennte Speicher. [Installation, Updates und Datenübernahme](Tauschwerk/DOCS.md).

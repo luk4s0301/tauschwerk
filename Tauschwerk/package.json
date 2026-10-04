@@ -1,9 +1,9 @@
 {
-  "name": "tauschwerk",
-  "version": "2.0.0",
+  "name": "swivo",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
-  "description": "Lokaler Ger\u00e4tevergleich und Tauschrechner",
+  "description": "Lokaler Gerätevergleich und Tauschrechner",
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs"

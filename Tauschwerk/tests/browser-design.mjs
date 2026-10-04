@@ -23,13 +23,13 @@ const overflow=async label=>assert.ok(await page.evaluate(()=>document.documentE
 const view=async name=>{await page.locator('#sidebar [data-view="'+name+'"]').click();await overflow(name);};
 try{
  await page.goto(server.url);await page.locator('.device-card').first().waitFor();
- await page.screenshot({path:path.join(root,'tests','Design-2.0-PC.png'),fullPage:true});
+ await page.screenshot({path:path.join(root,'tests','Swivo-PC.png'),fullPage:true});
  for(const width of [1440,1050,760,390,320]){
   await page.setViewportSize({width,height:width<760?844:1000});
   for(const name of ['catalog','trade','history','settings','compare'])await view(name);
   await page.locator('[data-action="new"]').first().click();await page.locator('#device-form').waitFor();await overflow('Geräte-Editor '+width);await page.locator('#device-form [name="name"]').focus();assert.equal(await page.locator('#device-form [name="name"]').evaluate(el=>el===document.activeElement),true);await page.locator('[data-action="close-modal"]').first().click();
  }
- await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(root,'tests','Design-2.0-Handy.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(root,'tests','Swivo-Handy.png'),fullPage:true});
  await page.setViewportSize({width:1440,height:1000});await page.locator('[data-mode="online"]').click();await page.locator('#online-query').fill('Switch 1');await page.locator('#online-search-form [type="submit"]').click();await page.locator('[data-action="online-fetch"]').waitFor();
  // Editing the next search must not change the identity of already displayed results.
  await page.locator('#online-query').fill('Switch 2');await page.locator('[data-action="online-fetch"]').click();await page.locator('.online-preview').waitFor();assert.equal(models.at(-1),'Switch 1');assert.match(await page.locator('.online-preview').innerText(),/32 GB/);

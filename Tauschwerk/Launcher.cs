@@ -35,7 +35,7 @@ class TauschwerkLauncher {
         }
       }
       OpenApp(url);
-    } catch(Exception error) {MessageBox.Show(error.Message,"Tauschwerk",MessageBoxButtons.OK,MessageBoxIcon.Error);}
+    } catch(Exception error) {MessageBox.Show(error.Message,"Swivo",MessageBoxButtons.OK,MessageBoxIcon.Error);}
   }
   static string ServerUrl(string root) {
     string file = Path.Combine(root,"server-url.json");
@@ -49,7 +49,7 @@ class TauschwerkLauncher {
   }
   static void OpenApp(string url) {
       string browser = FindBrowser();
-      if (browser == null) throw new Exception("Bitte Chrome oder Microsoft Edge installieren. Tauschwerk verwendet dessen App-Fenster für die lokale Oberfläche.");
+      if (browser == null) throw new Exception("Bitte Chrome oder Microsoft Edge installieren. Swivo verwendet dessen App-Fenster für die lokale Oberfläche.");
       ProcessStartInfo app = new ProcessStartInfo(browser,"--app="+Quote(url)+" --window-size=1440,960");
       app.UseShellExecute = false;
       app.CreateNoWindow = true;

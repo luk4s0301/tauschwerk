@@ -4,6 +4,7 @@
 
 Geräte vergleichen und Tauschangebote bewerten: als lokale Windows-App oder mit gemeinsamer Datenbank auf einem Home-Assistant-Server.
 
+- Hell-/Dunkel-Schalter mit eigener Browser-Einstellung und angepassten Kontrasten.
 - Moderne helle Oberfläche mit Glasflächen, Violettakzenten und mobiler Navigation.
 - Eigener Gerätekatalog für Handys, Konsolen, PC-Hardware, Uhren und weitere Kategorien.
 - Bis zu vier Geräte vergleichen; eigene Geräte und technische Merkmale bearbeiten.

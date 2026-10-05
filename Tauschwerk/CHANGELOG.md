@@ -1,3 +1,10 @@
+# 2.2.0
+
+- Hell-/Dunkel-Schalter im Kopfbereich, auch auf dem Handy und per Tastatur bedienbar.
+- Vollständige dunkle Farbwelt für Karten, Vergleiche, Online-Recherche, Tauschrechner, Formulare, Dialoge und Statusmeldungen; passende Text-, Rahmen- und Akzentfarben.
+- Ohne eigene Auswahl der Geräte-Einstellung folgen. Manuelle Auswahl im jeweiligen Browser speichern, vor dem ersten Rendern anwenden und zwischen Tabs synchronisieren; andere HA-Nutzer behalten ihre eigene Auswahl.
+- Darstellung umschalten, ohne laufende Eingaben, Datenmodus oder Geräteauswahl zurückzusetzen. Auch ohne verfügbaren Browserspeicher benutzbar; Ausdrucke bleiben hell.
+
 # 2.1.0
 
 - Tauschwerk heißt jetzt Swivo: neue Wortmarke mit S-Symbol aus zwei Tauschrouten und dem Claim „Deine Technik. Dein nächster Deal.“

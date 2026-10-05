@@ -3,7 +3,7 @@ import https from 'node:https';
 import dns from 'node:dns/promises';
 import net from 'node:net';
 import zlib from 'node:zlib';
-const agent='Swivo/2.1 (local device comparison; user initiated requests)';
+const agent='Swivo/2.2 (local device comparison; user initiated requests)';
 export function isPublicAddress(address) {
   const type=net.isIP(address);
   if(type===4){const [a,b,c]=address.split('.').map(Number);return !(a===0||a===10||a===127||a>=224||(a===100&&b>=64&&b<=127)||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&(b===168||(b===0&&c===0)||(b===0&&c===2)))||(a===198&&(b===18||b===19||(b===51&&c===100)))||(a===203&&b===0&&c===113));}

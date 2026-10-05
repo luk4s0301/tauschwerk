@@ -42,6 +42,7 @@ let onlineCache=[];
 if(shared)try{onlineCache=JSON.parse(fs.readFileSync(cacheFile,'utf8'));if(!Array.isArray(onlineCache))onlineCache=[];onlineCache=onlineCache.filter(e=>e && Number.isFinite(e.time) && Date.now()-e.time<86400000 && e.device).slice(-100);}catch{}
 const publicFiles = new Map([
   ['/',['index.html','text/html; charset=utf-8']],
+  ['/theme.js',['theme.js','text/javascript; charset=utf-8']],
   ['/app.js',['app.js','text/javascript; charset=utf-8']],
   ['/styles.css',['styles.css','text/css; charset=utf-8']],
   ['/icons.js',['icons.js','text/javascript; charset=utf-8']],
@@ -55,13 +56,13 @@ const server = http.createServer(async (req,res) => {
   const url = new URL(req.url, origin);
   const authenticated = shared || (req.headers.cookie || '').split(';').some(c=>c.trim()===`tw_session=${token}`);
   const send = (code,payload,headers={}) => {res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers});res.end(JSON.stringify(payload));};
-  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'2.1.0'});
+  if (url.pathname === '/health' && (shared || url.searchParams.get('token') === token)) return send(200,{ok:true,version:'2.2.0'});
   if (!shared && url.pathname === '/' && url.searchParams.get('token') === token) {
     res.writeHead(302,{'Set-Cookie':`tw_session=${token}; HttpOnly; SameSite=Strict; Path=/`,'Location':'/','Cache-Control':'no-store'});return res.end();
   }
   if (!authenticated) return send(401,{error:'Bitte Swivo über den App-Starter öffnen.'});
   lastSeen = Date.now();
-  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'2.1.0'});
+  if (url.pathname === '/api/meta' && req.method === 'GET') return send(200,{shared,version:'2.2.0'});
   if (url.pathname === '/api/store' && req.method === 'GET') {const data=structuredClone(store);if(shared)delete data.ui;return send(200,data,{ETag:revision});}
   if (url.pathname === '/api/ping' && req.method === 'POST') return send(200,{ok:true});
   if(url.pathname==='/api/online/valuation'&&req.method==='POST'){

@@ -138,3 +138,7 @@ Die Suche bevorzugt offizielle Herstellerseiten, danach Geizhals und passende Fa
 Samsung-Datenblöcke und GSMArena-Tabellen werden getrennt nach technischen Merkmalen eingelesen. Ultra, Plus, Pro und FE sind eigenständige Varianten. Nach dem Abruf wird das Modell nochmals gegen den Suchbegriff geprüft. Empfohlene Fremdprodukte in strukturierten Daten und Empfehlungsbereichen werden ausgelassen. Widersprüchliche Angaben für dasselbe Merkmal bleiben offen und erscheinen als Warnung. Jede importierte Angabe enthält ihren Quelllink; die Vorschau zeigt ihn je Zeile. Fehlende Daten werden nicht ergänzt oder erfunden.
 
 Quellennamen kennzeichnen Herkunft, keine unabhängige Verifikation. Automatische Imports bleiben prüfpflichtig. Erreichbarkeit und Seitenaufbau können sich ändern; bei gesperrten oder ausschließlich per JavaScript geladenen Daten bleibt der Originalseiten-Link verfügbar.
+
+## Helle und dunkle Darstellung
+
+Oben neben Offline/Online wechselt der Schiebeschalter **Hell / Dunkel** die Darstellung. Ohne gespeicherte Auswahl folgt Swivo der Geräte-Einstellung. Eine manuelle Auswahl bleibt in diesem Browser erhalten und gilt auch nach einem Neustart. Andere Browser und HA-Nutzer behalten ihre eigene Einstellung. Der Schalter lässt sich mit Tab fokussieren und mit Leertaste oder Enter bedienen; Eingaben und Geräteauswahl bleiben beim Umschalten erhalten. Ausdrucke bleiben hell.

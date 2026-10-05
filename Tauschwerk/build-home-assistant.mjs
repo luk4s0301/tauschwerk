@@ -6,7 +6,7 @@ const root=path.dirname(fileURLToPath(import.meta.url));
 const target=path.join(root,'home-assistant','tauschwerk');
 fs.mkdirSync(path.join(target,'public'),{recursive:true});
 for(const file of ['server.mjs','server-policy.mjs','core.mjs','online.mjs','online-parser.mjs','remote.mjs','device-images.mjs','market-value.mjs','online-search.mjs','online-sources.mjs','online-catalogs.mjs','catalog.json','package.json'])fs.copyFileSync(path.join(root,file),path.join(target,file));
-for(const file of ['index.html','app.js','styles.css','icons.js','favicon.svg'])fs.copyFileSync(path.join(root,'public',file),path.join(target,'public',file));
+for(const file of ['index.html','theme.js','app.js','styles.css','icons.js','favicon.svg'])fs.copyFileSync(path.join(root,'public',file),path.join(target,'public',file));
 const source=path.join(root,'data','tauschwerk.json');
 const seed=validateStore(fs.existsSync(source)?JSON.parse(fs.readFileSync(source,'utf8')):{version:1,devices:JSON.parse(fs.readFileSync(path.join(root,'catalog.json'),'utf8')),trades:[]});
 delete seed.ui;fs.writeFileSync(path.join(target,'initial-store.json'),JSON.stringify(seed,null,2));
